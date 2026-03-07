@@ -111,10 +111,12 @@ totalPagoPromotor
 - **[Entity 2]**: Ticket
 
 idTicket  
+comprador
 idEvento  
 estadoFinanciero (Validado / NoAsistio / Cortesia / Cancelado)  
 valorBruto  
 fechaVenta  
+fechaEvento
 
 Relaciones:  
 Pertenece a un evento.  
