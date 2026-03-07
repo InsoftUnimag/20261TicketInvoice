@@ -6,7 +6,7 @@
 
 ### User Story 1 - [Consultar valor comisión recinto] (Priority: P1)
 
-Como administrador de recinto, quiero poder consultar el valor de la comisión asociada a un recinto, para conocer las condiciones económicas previamente acordadas para los eventos realizados en ese recinto.
+Como administrador de recinto, quiero poder consultar el valor de la comisión asociada al recinto, para verificar que se registraron las condiciones económicas previamente acordadas para los eventos realizados en ese recinto.
 
 **Why this priority**: Permite verificar las condiciones económicas configuradas para el recinto antes de realizar cálculos de liquidación o distribución del recaudo.
 
