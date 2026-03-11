@@ -1,134 +1,92 @@
-# Feature Specification: Feature
+# Feature Specification: Consultar resumen de ventas del evento
 
 **Created**: [21/02/2026]  
 
 ## User Scenarios & Testing *(mandatory)*
 
-<!--
-  IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
-  Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
-  you should still have a viable MVP (Minimum Viable Product) that delivers value.
-  
-  Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
-  Think of each story as a standalone slice of functionality that can be:
-  - Developed independently
-  - Tested independently
-  - Deployed independently
-  - Demonstrated to users independently
--->
+### User Story 1 - [Consultar resumen de ventas del evento] (Priority: P1)
 
-### User Story 1 - [Informar Ventas] (Priority: P1)
+Como **módulo de liquidación y dispersión de fondos**  
+quiero **consultar el resumen de ventas de un evento**  
+para **calcular correctamente la distribución del recaudo entre los actores involucrados**.
 
-Como "gestion de recintos e inventarios de aforo" quiero informar las ventas realizadas de las entradas para los eventos registrados en la plataforma
+**Why this priority**:  
+El resumen de ventas constituye el insumo principal para calcular la liquidación financiera del evento. Sin esta información no es posible determinar los montos correspondientes al promotor, la plataforma y otros participantes.
 
-**Why this priority**: Es necesario informar las ventas de los tickets, para poder realizar una liquidacion y dispercion correcta de fondos.
-**Independent Test**: Permitir visualizar informacion de ventas realizadas por evento mostrando:
+**Independent Test**:  
+Permitir obtener el resumen de ventas de un evento mostrando:
 
--Total de tickets vendidos
-
--Total de tickets validados
-
--Total de tickets cancelados
-
--Total de cortesías
+- Total de tickets vendidos  
+- Total de tickets validados  
+- Total de tickets cancelados  
+- Total de tickets de cortesía  
+- Valor total recaudado por condición de liquidación  
 
 **Acceptance Scenarios**:
 
-1. **Scenario**: 
-   - **Given** Dado que se han vendido tickets para un evento 
-   - **When** Cuando la gestion de recintos e inventarios de aforo registre la finalizacion de un evento
-   - **Then** Entonces los datos deben ser registrados para calcular la distribucion del recaudo
+1. **Scenario: Consulta exitosa del resumen de ventas**
+
+- **Given** un evento que ha sido cerrado en el sistema de gestión de recintos  
+- **When** el módulo de liquidación realiza una solicitud GET al endpoint de snapshot del evento  
+- **Then** el sistema recibe el resumen consolidado de tickets por condición de liquidación y el valor total recaudado
+
+2. **Scenario: Consulta realizada antes del cierre del evento**
+
+- **Given** un evento que aún se encuentra en curso  
+- **When** el módulo de liquidación consulta el resumen de ventas  
+- **Then** el sistema recibe una respuesta indicando que el evento aún no ha sido cerrado
 
 ---
 
-[Add more user stories as needed, each with an assigned priority]
-
 ### Edge Cases
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right edge cases.
--->
+- ¿Qué sucede si se consulta el resumen de ventas de un evento que no existe?  
+El sistema debe recibir una respuesta de error indicando que el evento no se encuentra registrado.
 
-- What happens when [boundary condition]?
-- How does system handle [error scenario]?
+- ¿Qué sucede si el servicio externo no está disponible?  
+El sistema debe registrar el error y notificar que no fue posible obtener la información de ventas.
+
+---
 
 ## Requirements *(mandatory)*
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right functional requirements.
--->
-
 ### Functional Requirements
 
-**FR-001**: El sistema debe permitir registrar y consolidar automaticamente las ventas por evento.
+**FR-001:** El sistema DEBE permitir consultar el resumen de ventas de un evento.
 
-**FR-002**: El sistema debe calcular y mostrar:
--Total de tickets vendidos
--Total de tickets validados
--Total de tickets cancelados
--Total de recaudo bruto
+**FR-002:** El sistema DEBE consumir el endpoint REST `/eventos/{id}/snapshot` expuesto por el módulo de gestión de recintos e inventario de aforo.
 
-**FR-003**El sistema DEBE permitir marcar un evento como “Finalizado”.
+**FR-003:** El sistema DEBE recibir el conteo de tickets agrupado por condición de liquidación.
 
+**FR-004:** El sistema DEBE utilizar esta información como insumo para el cálculo de la distribución del recaudo.
 
-**FR-004**El sistema DEBE bloquear la modificación de datos de ventas una vez el evento haya sido liquidado.
+**FR-005:** El sistema DEBE manejar errores cuando el evento no exista o el servicio externo no esté disponible.
 
+---
 
-**FR-005**El sistema DEBE validar que el evento exista antes de permitir registrar su finalización.
+## Key Entities *(include if feature involves data)*
 
+### SnapshotVentasEvento
 
-**FR-006**El sistema DEBE permitir consultar el resumen de ventas por evento despues de que dicho evento haya finalizado.
-
-
-**FR-007**El sistema DEBE calcular el recaudo bruto excluyendo tickets cancelados.
-
-
-
-
-### Key Entities *(include if feature involves data)*
-
-- **[Entity 1]**:
-**Evento**
-
+Representa el resumen consolidado de tickets de un evento.
 
 Atributos:
 
-idEvento
-
-estadoEvento (Programado / EnCurso / Finalizado / Liquidado)
-
-tipoLiquidacion (TarifaPlana / RepartoIngresos)
-
-totalRecaudoBruto
-
-totalComisionPlataforma
-
-totalPagoPromotor
-
-
-- **[Entity 2]**: Ticket
-
-idTicket  
-comprador
 idEvento  
-estadoFinanciero (Validado / NoAsistio / Cortesia / Cancelado)  
-valorBruto  
-fechaVenta  
-fechaEvento
+totalTicketsVendidos  
+totalTicketsValidados  
+totalTicketsCancelados  
+totalTicketsCortesia  
+totalRecaudo  
 
-Relaciones:  
-Pertenece a un evento.  
-Su estado impacta el calculo financiero del recaudo.
+---
 
 ## Success Criteria *(mandatory)*
 
-<!--
-  ACTION REQUIRED: Define measurable success criteria.
-  These must be technology-agnostic and measurable.
--->
-
 ### Measurable Outcomes
 
-- **SC-001**: El 100% de los eventos liquidables deben tener informacion de ventas disponible para el calculo financiero.
+**SC-001:** El sistema debe obtener el resumen de ventas del evento correctamente en el 100% de las consultas realizadas sobre eventos cerrados.
+
+**SC-002:** El resumen de ventas obtenido debe coincidir con los datos registrados en el sistema de gestión de recintos.
+
+**SC-003:** El sistema debe bloquear el cálculo de liquidación si no se logra obtener el resumen de ventas del evento.
