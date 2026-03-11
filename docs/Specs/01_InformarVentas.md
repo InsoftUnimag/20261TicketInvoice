@@ -17,7 +17,7 @@
   - Demonstrated to users independently
 -->
 
-### User Story 2 - [Informar Ventas] (Priority: P1)
+### User Story 1 - [Informar Ventas] (Priority: P1)
 
 Como "gestion de recintos e inventarios de aforo" quiero informar las ventas realizadas de las entradas para los eventos registrados en la plataforma
 
