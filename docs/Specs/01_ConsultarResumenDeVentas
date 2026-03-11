@@ -87,6 +87,5 @@ totalRecaudo
 
 **SC-001:** El sistema debe obtener el resumen de ventas del evento correctamente en el 100% de las consultas realizadas sobre eventos cerrados.
 
-**SC-002:** El resumen de ventas obtenido debe coincidir con los datos registrados en el sistema de gestión de recintos.
 
 **SC-003:** El sistema debe bloquear el cálculo de liquidación si no se logra obtener el resumen de ventas del evento.
