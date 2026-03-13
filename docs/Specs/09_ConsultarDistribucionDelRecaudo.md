@@ -34,11 +34,6 @@ Como administrador financiero quiero consultar la distribucion del recaudo gener
 
 ### Edge Cases
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right edge cases.
--->
-
 -Que pasa cuando se intenta consultar la distribucion de un evento que no existe?
 
 Se muestra un mensaje de error indicando que el evento no se encuentra registrado.
@@ -48,11 +43,6 @@ Se muestra un mensaje de error indicando que el evento no se encuentra registrad
 El sistema debe bloquear la consulta y notificar al administrador financiero para revision.
 
 ## Requirements *(mandatory)*
-
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right functional requirements.
--->
 
 ### Functional Requirements
 
@@ -78,8 +68,6 @@ El sistema debe bloquear la consulta y notificar al administrador financiero par
 -totalReembolsos
 
 -fechaLiquidacion
-
-
 
 
 ### Measurable Outcomes
