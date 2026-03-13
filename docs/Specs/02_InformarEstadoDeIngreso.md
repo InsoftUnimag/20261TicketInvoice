@@ -1,170 +1,88 @@
-# Feature Specification: [FEATURE NAME]
+# Feature Specification: Consultar estado de ingreso de tickets
+Created: [DATE]
 
-**Created**: [DATE]  
+## User Scenarios & Testing (mandatory)
 
-## User Scenarios & Testing *(mandatory)*
+### User Story 1 - [Consultar estado de ingreso] (Priority: P1)
 
-<!--
-  IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
-  Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
-  you should still have a viable MVP (Minimum Viable Product) that delivers value.
-  
-  Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
-  Think of each story as a standalone slice of functionality that can be:
-  - Developed independently
-  - Tested independently
-  - Deployed independently
-  - Demonstrated to users independently
--->
+Como *módulo de liquidación y dispersión de fondos* quiero *consultar el estado de ingreso de los tickets vendidos para un evento desde el módulo de operación de eventos y control de accesos* para *determinar qué tickets fueron utilizados durante el evento y usar esta información en el cálculo de la liquidación final*.
 
-### User Story 1 - [Informar estado de ingreso] (Priority: P1)
+*Why this priority*:  
+El estado de ingreso de los tickets permite identificar si un ticket vendido fue efectivamente utilizado durante el evento. Esta información es necesaria para determinar la condición financiera final del ticket para el calculo del pago final y poder determinar los montos a dispersar.
 
-Como "Operacion de eventos y control de accesos" quiero informar el estado de ingreso de los tikeckts vendidos (Exitoso, Denegado, Re-ingreso)
+*Independent Test*: Permitir visualizar el estado de ingreso del ticket dentro de los siguientes tipos:
 
-**Why this priority**: Es necesario informar el estado de ingreso para el calculo del pago final y poder determinar los montos a dispersar.
-**Independent Test**: Permitir visualizar la condicion del ticket dentro de los siguientes tipos:
+- Check-in realizado (Asistió al evento)  
+- Sin check-in registrado (No asistió al evento)
 
--Validado (Check-in)
--Vendido (No asistió)
--Cortesía (Free Pass)
--Cancelado
+*Acceptance Scenarios*:
 
-**Acceptance Scenarios**:
+1. *Scenario: Ticket con check-in exitoso*
+   - *Given* Dado que se vendió un ticket para un evento  
+   - *When* Cuando el módulo de liquidación consulta el estado de ingreso del ticket  
+   - *Then* Entonces el sistema recibe que el ticket tiene estado *Check-in realizado*, indicando que el asistente ingresó al evento  
 
-1. **Scenario**: Condicion de ticket "Validado(Check-In)"
-   - **Given** Dado que se vendio un ticket 
-   - **When** Cuando la condicion del ticket es "validado"
-   - **Then** Entonces el monto a dispersar del pago final se distribuye en 90% al promotor, 10% a la comision de la plataforma y como observacion: "Servcio Completado"
+2. *Scenario: Ticket sin check-in*
+   - *Given* Dado que se vendió un ticket para un evento  
+   - *When* Cuando el módulo de liquidación consulta el estado de ingreso del ticket  
+   - *Then* Entonces el sistema recibe que el ticket *no tiene registro de check-in*, indicando que el asistente no ingresó al evento  
 
-2. **Scenario**: Condicion de ticket "Vendido(No Asistio)"
-   - **Given** Dado que se vendio un ticket 
-   - **When** Cuando la condicion del ticket es "Vendido(No asistio)"
-   - **Then** Entonces el monto a dispersar del pago final se distribuye en 100% al promotor, 10% a la comision de la plataforma y como observacion: "El ingreso se mantiene; menor gasto operativo"
+3. *Scenario: Consulta de estado de ingreso para evento inexistente*
+   - *Given* Dado que se intenta consultar el estado de ingreso de un evento inexistente  
+   - *When* Cuando el módulo de liquidación realiza la consulta  
+   - *Then* Entonces el sistema debe retornar un error indicando que el evento no está registrado  
 
-3. **Scenario**: Condicion de ticket "Cortesia(Free Pass)"
-   - **Given** Dado que se vendio un ticket 
-   - **When** Cuando la condicion del ticket es "Cortesia(Free Pass)"
-   - **Then** Entonces el monto a dispersar del pago final se distribuye en 0% al promotor, Tarifa Fija a la comision de la plataforma y como observacion: "Costo operativo por emisión de ticket."
-  
-4. **Scenario**: Condicion de ticket "Cortesia(Free Pass)"
-   - **Given** Dado que se vendio un ticket 
-   - **When** Cuando la condicion del ticket es "Cancelada"
-   - **Then** Entonces el monto a dispersar del pago final se distribuye en -100% al promotor, 0% la comision de la plataforma y como observacion: "Costo operativo por emisión de ticket."
+---
 
+## Edge Cases
 
+- ¿Qué pasaría si un ticket vendido no tiene información de ingreso registrada?
 
-### Edge Cases
+El sistema debe considerar el ticket como *no asistido* y continuar el proceso de cálculo de liquidación.
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right edge cases.
--->
+- ¿Qué pasaría si el servicio del módulo de control de accesos no está disponible?
 
--Que pasaria si no se le asigna ningun estado al ticket vendido?
+El sistema debe registrar un error y bloquear el proceso de liquidación hasta obtener la información necesaria.
 
-Se manda un mesaje de "Error diciendo todos los tickets deben tener un estado asignado (Validado,Vendido(no asistio), cortesia y cancelado)
-todos los ticket deben tener un estado.
+---
 
--Que pasaria si se le quiere cambiar el estado a un ticket ya liquidado?
-Se bloquea la operacion y se piden permisos de administrador financiero.
-
-## Requirements *(mandatory)*
-
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right functional requirements.
--->
+## Requirements (mandatory)
 
 ### Functional Requirements
 
-**FR-001:**El sistema DEBE registrar el estado operativo del ticket en tiempo real (Validado,Vendido(no asistio), cortesia y cancelado).
+*FR-001:* El sistema DEBE permitir consultar el estado de ingreso de los tickets asociados a un evento.
 
-**FR-002:**El sistema DEBE validar que el ticket pertenezca al evento antes de permitir check-in.
+*FR-002:* El sistema DEBE consumir el endpoint REST expuesto por el módulo de *operación de eventos y control de accesos* para obtener el estado de ingreso de los tickets.
 
-**FR-003:**El sistema DEBE impedir la liquidación de un evento si existen tickets sin estado financiero definido.
+*FR-003:* El sistema DEBE recibir el estado de ingreso del ticket con los siguientes valores:
 
-**FR-004:**El sistema DEBE calcular automáticamente la distribución financiera según la matriz definida.
+- Check-in realizado  
+- Sin check-in registrado  
 
-**FR-005:**El sistema DEBE bloquear modificaciones de estado una vez el evento esté en estado "Liquidado".
+*FR-004:* El sistema DEBE utilizar esta información como insumo para el cálculo de la liquidación del evento.
 
-**FR-006:**El sistema DEBE permitir exportar el resumen financiero consolidado por evento.
+*FR-005:* El sistema DEBE manejar errores cuando el evento consultado no exista o el servicio externo no esté disponible.
 
+---
 
+## Key Entities (include if feature involves data)
 
-### Key Entities *(include if feature involves data)*
-
-- **[Entity 1]**:
-
-**Ticket**
-
-Atributos clave:
-
-idTicket
-
-idEvento
-
-estadoOperativo (Exitoso / Denegado / Re-ingreso)
-
-estadoFinanciero (Validado / NoAsistio / Cortesia / Cancelado)
-
-valorBruto
-
-fechaVenta
-
-fechaValidacion
-
-- **[Entity 2]**:
-
-**Evento**
-
+- *TicketIngreso*
 
 Atributos:
 
-idEvento
+idTicket  
+idEvento  
+estadoIngreso (CheckIn / SinCheckIn)  
+fechaIngreso  
 
-estadoEvento (Programado / EnCurso / Finalizado / Liquidado)
+Relaciones:  
+Representa el registro de ingreso de un ticket en el sistema de control de accesos y es utilizado por el módulo de liquidación para determinar si el ticket fue utilizado durante el evento.
 
-tipoLiquidacion (TarifaPlana / RepartoIngresos)
+---
 
-totalRecaudoBruto
-
-totalComisionPlataforma
-
-totalPagoPromotor
-
-- **[Entity 3]**:
-
- **Liquidacion**
-
-Atributos:
-
-idLiquidacion
-
-idEvento
-
-fechaCorte
-
-totalPromotor
-
-totalPlataforma
-
-totalReembolsos
-
-estadoLiquidacion 
-
-## Success Criteria *(mandatory)*
-
-<!--
-  ACTION REQUIRED: Define measurable success criteria.
-  These must be technology-agnostic and measurable.
--->
+## Success Criteria (mandatory)
 
 ### Measurable Outcomes
 
-**SC-001:**El 100% de los tickets procesados deben tener un estado financiero válido antes de ejecutar la liquidación.
-
-**SC-002:**El sistema debe procesar validaciones en tiempo real con latencia menor a 2 segundos por operación.
-
-**SC-003:**El 99% de los eventos liquidables deben generar el cálculo financiero sin inconsistencias contables.
-
-**SC-004:**Capacidad de procesar al menos 500 validaciones por hora sin degradación del servicio.
+- *SC-001*: El 100% de los tickets consultados deben retornar un estado de ingreso válido antes de realizar el cálculo de liquidación.
