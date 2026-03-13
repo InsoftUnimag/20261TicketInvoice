@@ -67,17 +67,53 @@ El sistema debe registrar un error y bloquear el proceso de liquidación hasta o
 
 ## Key Entities (include if feature involves data)
 
-- *TicketIngreso*
+- **RegistroIngreso**
+
+Representa el registro de acceso de un ticket al evento proveniente del módulo de operación de eventos y control de accesos.
 
 Atributos:
 
 idTicket  
 idEvento  
-estadoIngreso (CheckIn / SinCheckIn)  
-fechaIngreso  
+fechaHoraIngreso  
+estadoIngreso  
+tipoAcceso (Ingreso / Reingreso)
 
 Relaciones:  
-Representa el registro de ingreso de un ticket en el sistema de control de accesos y es utilizado por el módulo de liquidación para determinar si el ticket fue utilizado durante el evento.
+Cada registro de ingreso está asociado a un ticket y a un evento específico y permite determinar si el ticket fue utilizado durante el evento.
+
+---
+
+- **Ticket**
+
+Representa el identificador único asociado a un asistente.
+
+Atributos:
+
+idTicket  
+codigoTicket  
+eventoId  
+categoria  
+estado  
+
+Relaciones:  
+Cada ticket puede tener asociado un registro de ingreso que indica si el asistente utilizó el ticket para acceder al evento.
+
+---
+
+- **Evento**
+
+Representa el evento en el cual se registran los accesos de los asistentes.
+
+Atributos:
+
+idEvento  
+nombreEvento  
+fechaEvento  
+estadoEvento  
+
+Relaciones:  
+Un evento agrupa múltiples tickets y registros de ingreso utilizados para determinar la asistencia al evento.
 
 ---
 
