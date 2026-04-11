@@ -1,6 +1,8 @@
+
 # Gestión Global de Eventos
 
-Este documento define la infraestructura técnica y lógica para la gestión de eventos masivos, integrando la disponibilidad física de recintos, la validación de accesos en tiempo real y la dispersión financiera automatizada.
+Este documento define la infraestructura técnica y lógica para la gestión de eventos masivos, integrando la disponibilidad física de recintos, la validación de accesos en tiempo real y la dispersión financiera automatizada. 
+Proyecto de Ing. de Software
 
 ---
 
@@ -42,7 +44,7 @@ Cada intento de ingreso debe registrar un estado y, en caso de fallo, un motivo 
 
 ---
 
-## 💰 Módulo 3: Liquidación y Dispersión de Fondos
+## 💰 Módulo 3: Liquidación y Dispersión de Fondos:
 Este módulo automatiza la distribución del recaudo entre los actores involucrados (Promotor, Recinto, Ticketera).
 
 ### 3.1. Modelos de Negocio
