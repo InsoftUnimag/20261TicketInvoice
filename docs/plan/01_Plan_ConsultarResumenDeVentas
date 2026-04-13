@@ -1,0 +1,115 @@
+# Implementation Plan: Consultar resumen de ventas del evento
+ 
+**Date:** 11/04/2026  
+**Spec:** [Feature Specification: Consultar resumen de ventas del evento]
+ 
+## Summary
+Implementación de la capacidad para obtener el consolidado de ventas de un evento desde el módulo externo de gestión de recintos. El sistema consumirá el endpoint `/eventos/{id}/snapshot` para extraer el conteo de tickets por condición de liquidación, validando que el evento esté cerrado antes de permitir que los datos fluyan hacia el proceso de dispersión de fondos.
+ 
+---
+ 
+## Technical Context
+- **Language/Version:** Python 3.12 / Node.js 20 LTS
+- **Primary Dependencies:** HTTPX (Python) o Axios (Node), Pydantic/Zod (Validación de Esquemas)
+- **Storage:** PostgreSQL (Tabla `resumen_ventas_evento` para persistencia de auditoría)
+- **Testing:** Pytest / Jest con librerías de Mocking para servicios externos
+- **Target Platform:** Microservicio de Liquidación y Dispersión
+- **Performance Goals:** Latencia de consulta externa < 800ms
+- **Constraints:** Bloqueo estricto si `estadoEvento != "CERRADO"`
+- **Scale/Scope:** Soporte para eventos masivos (hasta 100k tickets por snapshot)
+ 
+---
+ 
+## Project Structure
+ 
+### Documentation (this feature)
+`specs/ventas-resumen/`
+- `plan.md`  <- Este archivo
+- `spec.md`  <- Especificación funcional original
+ 
+### Source Code (repository root)
+```text
+src/
+├── api/
+│   └── v1/
+│       └── endpoints/
+│           └── ventas.py        # Exposición del resumen para liquidación
+├── clients/
+│   └── recintos_client.py       # Cliente REST para servicio externo
+├── models/
+│   ├── domain/                  # Entidades (Ticket, Evento)
+│   └── persistence/             # Modelos de Base de Datos (ORM)
+├── services/
+│   └── ventas_service.py        # Lógica de validación y transformación
+tests/
+├── integration/
+│   └── test_recintos_api.py     # Mocks de servicios externos
+└── unit/
+    └── test_business_rules.py   # Reglas de cierre de evento
+```
+ 
+**Structure Decision:** Se utiliza una arquitectura por capas para asegurar que el fallo del servicio externo sea manejado por un cliente especializado sin corromper la lógica de liquidación.
+ 
+---
+ 
+## Phase 1: Setup (Shared Infrastructure)
+**Purpose:** Inicialización y configuración base del entorno.
+- [ ] **T001** Crear estructura de directorios según el plan.
+- [ ] **T002** Configurar cliente HTTP base con políticas de *retry* (3 intentos) y *timeouts*.
+- [ ] **T003** Configurar variables de entorno (`RECINTOS_API_URL`, `RECINTOS_AUTH_TOKEN`).
+ 
+## Phase 2: Foundational (Blocking Prerequisites)
+**Purpose:** Infraestructura crítica necesaria para cualquier flujo de datos.
+⚠️ **CRITICAL:** Ninguna liquidación puede ocurrir sin estos componentes.
+- [ ] **T004** Implementar migración de DB para la tabla `resumen_ventas_evento`.
+- [ ] **T005** Definir esquemas de validación (DTOs) para el JSON del snapshot externo.
+- [ ] **T006** Implementar el cliente `RecintosClient` para conectar con el endpoint `/eventos/{id}/snapshot`.
+- [ ] **T007** Configurar interceptores de error para manejar el estado 503 (Servicio Externo Caído) y 404.
+ 
+**Checkpoint:** Infraestructura lista para procesar datos reales.
+ 
+## Phase 3: User Story 1 - Consultar resumen de ventas (Priority: P1)
+**Goal:** Obtener el resumen consolidado y validar el estado del evento.
+**Independent Test:** Al consultar un evento con estado diferente a "Cerrado", el sistema debe responder con error 400 y bloquear el proceso.
+ 
+### Tests for User Story 1
+- [ ] **T008 [P] [US1]** Test de integración: Mock de API externa retornando 200 OK con datos de tickets.
+- [ ] **T009 [P] [US1]** Test de unidad: Validar que `VentasService` lanza excepción si el evento no está cerrado.
+- [ ] **T010 [P] [US1]** Test de borde: Manejo de respuesta vacía o campos faltantes en el JSON de Recintos.
+ 
+### Implementation for User Story 1
+- [ ] **T011 [P] [US1]** Crear modelo de dominio/persistencia para `ResumenVentasEvento`.
+- [ ] **T012 [P] [US1]** Implementar método `get_event_snapshot` en el cliente externo.
+- [ ] **T013 [US1]** Implementar lógica en `VentasService` para validar `estadoEvento == "Cerrado"` (FR-002, FR-005).
+- [ ] **T014 [US1]** Crear el endpoint `GET /api/v1/ventas/resumen/{id_evento}`.
+- [ ] **T015 [US1]** Implementar persistencia local del snapshot tras la validación exitosa (Auditoría).
+ 
+**Checkpoint:** User Story 1 funcional y testeada independientemente.
+ 
+## Phase N: Polish & Cross-Cutting Concerns
+**Purpose:** Robustez, observabilidad y documentación.
+- [ ] **T016** Implementar Logging detallado de cada consulta de snapshot (Input/Output).
+- [ ] **T017** Documentar los códigos de error específicos (SC-003) en Swagger/OpenAPI.
+- [ ] **T018** Configurar caché de 5 minutos para evitar múltiples llamadas externas innecesarias.
+ 
+---
+ 
+## Dependencies & Execution Order
+ 
+### Phase Dependencies
+1. **Phase 1 (Setup):** Sin dependencias.
+2. **Phase 2 (Foundational):** Depende de Phase 1. **BLOQUEA** Phase 3.
+3. **Phase 3 (User Story 1):** Depende de Phase 2.
+4. **Phase N (Polish):** Depende de completar la Phase 3.
+ 
+### User Story Dependencies
+1. **Modelos** antes que **Servicios**.
+2. **Cliente API** antes que **Endpoints**.
+3. **Validación de Cierre** antes que **Persistencia en DB**.
+ 
+---
+ 
+## Notes
+- `[US1]` indica trazabilidad directa con la User Story de la especificación original.
+- **SC-003:** El sistema bloquea el flujo si no hay snapshot válido; esto se maneja mediante excepciones en la capa de Servicio (`T013`).
+- Las tareas marcadas con `[P]` son requisitos críticos para que la User Story se considere funcionalmente completa.
