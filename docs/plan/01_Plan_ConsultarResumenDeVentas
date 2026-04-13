@@ -1,115 +1,184 @@
 # Implementation Plan: Consultar resumen de ventas del evento
- 
-**Date:** 11/04/2026  
-**Spec:** [Feature Specification: Consultar resumen de ventas del evento]
- 
+**Date:** 14/04/2026  
+**Spec:** `Consultar_resumen_de_ventas_del_evento.md`
+
 ## Summary
-Implementación de la capacidad para obtener el consolidado de ventas de un evento desde el módulo externo de gestión de recintos. El sistema consumirá el endpoint `/eventos/{id}/snapshot` para extraer el conteo de tickets por condición de liquidación, validando que el evento esté cerrado antes de permitir que los datos fluyan hacia el proceso de dispersión de fondos.
- 
----
- 
+Implementar un caso de uso y endpoint que permita al módulo de liquidación consultar el resumen consolidado de ventas de un evento cerrado, consumiendo internamente el servicio externo `/eventos/{id}/snapshot` del módulo de gestión de recintos. Se aplicará Arquitectura Hexagonal, abstracción del cliente HTTP externo, validación explícita del estado del evento y manejo estructurado de errores para garantizar la trazabilidad financiera y el bloqueo de liquidación ante fallos (SC-001, SC-003).
+
 ## Technical Context
-- **Language/Version:** Python 3.12 / Node.js 20 LTS
-- **Primary Dependencies:** HTTPX (Python) o Axios (Node), Pydantic/Zod (Validación de Esquemas)
-- **Storage:** PostgreSQL (Tabla `resumen_ventas_evento` para persistencia de auditoría)
-- **Testing:** Pytest / Jest con librerías de Mocking para servicios externos
-- **Target Platform:** Microservicio de Liquidación y Dispersión
-- **Performance Goals:** Latencia de consulta externa < 800ms
-- **Constraints:** Bloqueo estricto si `estadoEvento != "CERRADO"`
-- **Scale/Scope:** Soporte para eventos masivos (hasta 100k tickets por snapshot)
- 
----
- 
+- **Language/Version:** Java 21 LTS
+- **Primary Dependencies:** Spring Boot 3.2+, Spring Web, Spring Data JPA, WebClient/RestClient, JUnit 5, Mockito, Testcontainers
+- **Storage:** PostgreSQL (para auditoría de consultas y logs de dispersión), sin persistencia directa del resumen (se calcula on-demand)
+- **Testing:** JUnit 5, Mockito, RestAssured (contract), Testcontainers (integration)
+- **Target Platform:** Backend Service (Linux/Containerized)
+- **Project Type:** Single Backend Service (Clean/Hexagonal Architecture)
+- **Performance Goals:** <1s p95 en llamadas externas, 100% de éxito para eventos cerrados (SC-001)
+- **Constraints:** Tolerancia a fallos del servicio externo, validación estricta de estado `CERRADO`, bloqueo explícito de liquidación si falla (SC-003)
+- **Scale/Scope:** Consultas on-demand por evento, picos de concurrencia durante ventanas de cierre/liquidación
+
 ## Project Structure
- 
-### Documentation (this feature)
-`specs/ventas-resumen/`
-- `plan.md`  <- Este archivo
-- `spec.md`  <- Especificación funcional original
- 
-### Source Code (repository root)
-```text
+
+**Documentation(this feature)**
+
+specs/[Consultar resumen de ventas del evento]/
+├── plan.md              
+└── spec.md  
+
+**Source Code (repository root)**
+
 src/
-├── api/
-│   └── v1/
-│       └── endpoints/
-│           └── ventas.py        # Exposición del resumen para liquidación
-├── clients/
-│   └── recintos_client.py       # Cliente REST para servicio externo
-├── models/
-│   ├── domain/                  # Entidades (Ticket, Evento)
-│   └── persistence/             # Modelos de Base de Datos (ORM)
-├── services/
-│   └── ventas_service.py        # Lógica de validación y transformación
-tests/
+└── main/java/com/empresa/ingreso/
+
+├── domain/
+
+│ ├── entities/
+
+│ │ ├── Evento.java
+
+│ │ ├── Ticket.java
+
+│ │ └── ResumenVentasEvento.java (DTO/Value Object de dominio)
+
+│ └── repositories/
+
+│ └── EventSnapshotRepository.java (Puerto para servicio externo)
+
+├── application/
+
+│ ├── usecase/
+
+│ │ └── ConsultarResumenVentasUseCase.java
+
+│ └── dto/
+
+│ ├── ConsultarResumenVentasRequest.java
+
+│ ├── ConsultarResumenVentasResponse.java
+
+│ └── ErrorResponse.java
+
+├── infrastructure/
+
+│ ├── external/
+
+│ │ └── EventSnapshotApiClient.java (Adaptador WebClient/RestClient)
+
+│ ├── interfaces/
+
+│ │ └── api/
+
+│ │ └── ResumenVentasController.java
+
+│ ├── config/
+
+│ │ ├── RestClientConfig.java
+
+│ │ └── TransactionConfig.java
+
+│ └── concurrency/
+
+│ └── (Reserva para throttling de consultas masivas)
+
+└── shared/
+
+├── errors/
+
+│ ├── ErrorCode.java
+
+│ ├── BusinessException.java
+
+│ └── TechnicalException.java
+
+└── constants/
+
+└── SystemConstants.java
+
+src/test/
+
+└── java/com/empresa/ingreso/
+
+├── unit/
+
 ├── integration/
-│   └── test_recintos_api.py     # Mocks de servicios externos
-└── unit/
-    └── test_business_rules.py   # Reglas de cierre de evento
-```
- 
-**Structure Decision:** Se utiliza una arquitectura por capas para asegurar que el fallo del servicio externo sea manejado por un cliente especializado sin corromper la lógica de liquidación.
- 
+
+└── concurrency/
+
+
+**Structure Decision:** Se adopta la estructura (Hexagonal/Clean). El consumo del servicio externo se abstrae detrás del puerto `domain/repositories/EventSnapshotRepository.java` para mantener el dominio desacoplado de la tecnología HTTP. `ResumenVentasEvento` se modela como objeto inmutable de dominio calculado en el Use Case, no como entidad JPA.
+
 ---
- 
+
 ## Phase 1: Setup (Shared Infrastructure)
-**Purpose:** Inicialización y configuración base del entorno.
-- [ ] **T001** Crear estructura de directorios según el plan.
-- [ ] **T002** Configurar cliente HTTP base con políticas de *retry* (3 intentos) y *timeouts*.
-- [ ] **T003** Configurar variables de entorno (`RECINTOS_API_URL`, `RECINTOS_AUTH_TOKEN`).
- 
+**Purpose:** Project initialization and basic structure
+- [ ] T001 Crear estructura de directorios según `Project Structure` definido
+- [ ] T002 Inicializar proyecto Java 21 con Spring Boot 3.2 (Web, Validation, JPA, Actuator)
+- [ ] T003 Configurar linting y formatters (Checkstyle/Spotless, SpotBugs) y baseline de SonarQube
+**Checkpoint:** Repositorio listo, build sin errores, convenciones aplicadas.
+
 ## Phase 2: Foundational (Blocking Prerequisites)
-**Purpose:** Infraestructura crítica necesaria para cualquier flujo de datos.
-⚠️ **CRITICAL:** Ninguna liquidación puede ocurrir sin estos componentes.
-- [ ] **T004** Implementar migración de DB para la tabla `resumen_ventas_evento`.
-- [ ] **T005** Definir esquemas de validación (DTOs) para el JSON del snapshot externo.
-- [ ] **T006** Implementar el cliente `RecintosClient` para conectar con el endpoint `/eventos/{id}/snapshot`.
-- [ ] **T007** Configurar interceptores de error para manejar el estado 503 (Servicio Externo Caído) y 404.
- 
-**Checkpoint:** Infraestructura lista para procesar datos reales.
- 
-## Phase 3: User Story 1 - Consultar resumen de ventas (Priority: P1)
-**Goal:** Obtener el resumen consolidado y validar el estado del evento.
-**Independent Test:** Al consultar un evento con estado diferente a "Cerrado", el sistema debe responder con error 400 y bloquear el proceso.
- 
+**Purpose:** Core infrastructure that MUST be complete before ANY user story can be implemented
+⚠️ CRITICAL: No user story work can begin until this phase is complete
+- [ ] T004 Configurar base de datos PostgreSQL y framework de migraciones (Flyway) para tablas de auditoría
+- [ ] T005 Implementar infraestructura de errores centralizada en `shared/errors/` y `@ControllerAdvice`
+- [ ] T006 Configurar cliente HTTP externo (`WebClient`/`RestClient`) con timeouts, logging de requests y retries base
+- [ ] T007 Crear entidades de dominio base: `Evento.java`, `Ticket.java` en `domain/entities/`
+- [ ] T008 Definir puerto `EventSnapshotRepository.java` en `domain/repositories/`
+- [ ] T009 Configurar logging estructurado (JSON), Correlation ID y trazabilidad de requests
+**Checkpoint:** Foundation ready - user story implementation can now begin in parallel
+
+## Phase 3: User Story 1 - Consultar resumen de ventas del evento (Priority: P1)
+**Goal:** Exponer capacidad para obtener el consolidado de ventas de un evento cerrado desde el servicio externo, validando estado y manejando fallos externos.
+**Independent Test:** Invocar `GET /api/v1/eventos/{id}/resumen-ventas` con un ID válido y estado `CERRADO`; validar respuesta JSON con conteos por condición y total recaudado. Validar errores `404` (evento inexistente), `409` (evento no cerrado) y `502` (servicio externo caído).
+
 ### Tests for User Story 1
-- [ ] **T008 [P] [US1]** Test de integración: Mock de API externa retornando 200 OK con datos de tickets.
-- [ ] **T009 [P] [US1]** Test de unidad: Validar que `VentasService` lanza excepción si el evento no está cerrado.
-- [ ] **T010 [P] [US1]** Test de borde: Manejo de respuesta vacía o campos faltantes en el JSON de Recintos.
- 
+- [ ] T010 [P] [US1] Contract test para endpoint en `src/test/.../integration/ResumenVentasApiContractTest.java`
+- [ ] T011 [P] [US1] Integration test con WireMock del servicio externo en `src/test/.../integration/ConsultarResumenVentasIntegrationTest.java`
+- [ ] T012 [US1] Unit tests para `ConsultarResumenVentasUseCase` en `src/test/.../unit/ConsultarResumenVentasUseCaseTest.java`
+
 ### Implementation for User Story 1
-- [ ] **T011 [P] [US1]** Crear modelo de dominio/persistencia para `ResumenVentasEvento`.
-- [ ] **T012 [P] [US1]** Implementar método `get_event_snapshot` en el cliente externo.
-- [ ] **T013 [US1]** Implementar lógica en `VentasService` para validar `estadoEvento == "Cerrado"` (FR-002, FR-005).
-- [ ] **T014 [US1]** Crear el endpoint `GET /api/v1/ventas/resumen/{id_evento}`.
-- [ ] **T015 [US1]** Implementar persistencia local del snapshot tras la validación exitosa (Auditoría).
- 
-**Checkpoint:** User Story 1 funcional y testeada independientemente.
- 
-## Phase N: Polish & Cross-Cutting Concerns
-**Purpose:** Robustez, observabilidad y documentación.
-- [ ] **T016** Implementar Logging detallado de cada consulta de snapshot (Input/Output).
-- [ ] **T017** Documentar los códigos de error específicos (SC-003) en Swagger/OpenAPI.
-- [ ] **T018** Configurar caché de 5 minutos para evitar múltiples llamadas externas innecesarias.
- 
+- [ ] T013 [P] [US1] Crear DTOs `Request`/`Response` en `application/dto/`
+- [ ] T014 [US1] Implementar `EventSnapshotApiClient` en `infrastructure/external/` (adaptador a `/eventos/{id}/snapshot`)
+- [ ] T015 [US1] Implementar `ConsultarResumenVentasUseCase` en `application/usecase/` (orquestación, validación estado, agregación de totales)
+- [ ] T016 [US1] Implementar `ResumenVentasController` en `infrastructure/interfaces/api/`
+- [ ] T017 [US1] Integrar manejo de errores: `BusinessException` (no cerrado/no existe) y `TechnicalException` (externo no disponible)
+- [ ] T018 [US1] Añadir métricas y logs específicos para trazabilidad de liquidación
+**Checkpoint:** At this point, User Story 1 should be fully functional and testable independently
+
+## Phase 4: Polish & Cross-Cutting Concerns
+**Purpose:** Improvements that affect multiple user stories
+- [ ] T019 Documentación OpenAPI/Swagger y guía de integración para módulo de liquidación
+- [ ] T020 Implementar Circuit Breaker y Retry Policy robusto para tolerancia a fallos externos (Resilience4j)
+- [ ] T021 Añadir tests de concurrencia y rate-limiting en `src/test/.../concurrency/`
+- [ ] T022 Hardening: validación estricta de inputs, sanitización de logs, rate limiting por IP/módulo
+- [ ] T023 Code cleanup, optimización de mapeos y revisión de arquitectura por pares
+**Checkpoint:** Feature ready for staging deployment and financial UAT
+
 ---
- 
+
 ## Dependencies & Execution Order
- 
+
 ### Phase Dependencies
-1. **Phase 1 (Setup):** Sin dependencias.
-2. **Phase 2 (Foundational):** Depende de Phase 1. **BLOQUEA** Phase 3.
-3. **Phase 3 (User Story 1):** Depende de Phase 2.
-4. **Phase N (Polish):** Depende de completar la Phase 3.
- 
+- **Setup (Phase 1):** No dependencies - can start immediately
+- **Foundational (Phase 2):** Depends on Setup completion - **BLOCKS** all user stories
+- **User Stories (Phase 3):** All depend on Foundational phase completion. Proceed sequentially for this feature.
+- **Polish (Phase 4):** Depends on User Story 1 completion and test validation
+
 ### User Story Dependencies
-1. **Modelos** antes que **Servicios**.
-2. **Cliente API** antes que **Endpoints**.
-3. **Validación de Cierre** antes que **Persistencia en DB**.
- 
----
- 
-## Notes
-- `[US1]` indica trazabilidad directa con la User Story de la especificación original.
-- **SC-003:** El sistema bloquea el flujo si no hay snapshot válido; esto se maneja mediante excepciones en la capa de Servicio (`T013`).
-- Las tareas marcadas con `[P]` son requisitos críticos para que la User Story se considere funcionalmente completa.
+- **User Story 1 (P1):** Can start after Foundational (Phase 2). Standalone for this feature.
+- **External Service:** Runtime dependency. Must be available/mocked during development. Does not block build if abstracted correctly.
+
+### Within Each User Story
+1. DTOs & Domain Models before services
+2. Repository Interface before External Client implementation
+3. Core Use Case logic before Controller/Endpoint
+4. Error handling & Logging after core implementation
+5. Tests after implementation (or TDD if preferred)
+6. Story complete before moving to Polish phase
+
+### Notes
+- `[P]` = Prioridad/Paralelizable, `[US1]` = Trazabilidad a Historia de Usuario 1
+- El resumen se calcula dinámicamente. No se persiste `ResumenVentasEvento` para evitar inconsistencia con el snapshot externo.
+- SC-003 exige bloqueo de liquidación: el `UseCase` debe lanzar excepciones no recuperables que el módulo consumidor interprete como `ABORT_LIQUIDATION`.
+- Validar explícitamente `estadoEvento == CERRADO`. Si es `EN_CURSO` o `PROGRAMADO`, retornar `BusinessException` con código `EVENT_NOT_CLOSED`.
+- Commit after each task or logical group. Stop at any checkpoint to validate story independently.
+- Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence.
