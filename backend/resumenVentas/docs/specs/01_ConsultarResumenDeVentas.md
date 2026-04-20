@@ -1,0 +1,125 @@
+# Feature Specification: Consultar resumen de ventas del evento
+
+**Created**: [21/02/2026]  
+
+## User Scenarios & Testing *(mandatory)*
+
+### User Story 1 - [Consultar resumen de ventas del evento] (Priority: P1)
+
+Como **módulo de liquidación y dispersión de fondos**  
+quiero **consultar el resumen de ventas de un evento**  
+para **calcular correctamente la distribución del recaudo entre los actores involucrados**.
+
+**Why this priority**:  
+El resumen de ventas constituye el insumo principal para calcular la liquidación financiera del evento. Sin esta información no es posible determinar los montos correspondientes al promotor, la plataforma y otros participantes.
+
+**Independent Test**:  
+Permitir obtener el resumen de ventas de un evento mostrando:
+
+- Total de tickets vendidos  
+- Total de tickets validados  
+- Total de tickets cancelados  
+- Total de tickets de cortesía  
+- Valor total recaudado por condición de liquidación  
+
+**Acceptance Scenarios**:
+
+1. **Scenario: Consulta exitosa del resumen de ventas**
+
+- **Given** un evento que ha sido cerrado en el sistema de gestión de recintos  
+- **When** el módulo de liquidación realiza una solicitud GET al endpoint de snapshot del evento  
+- **Then** el sistema recibe el resumen consolidado de tickets por condición de liquidación y el valor total recaudado
+
+2. **Scenario: Consulta realizada antes del cierre del evento**
+
+- **Given** un evento que aún se encuentra en curso  
+- **When** el módulo de liquidación consulta el resumen de ventas  
+- **Then** el sistema recibe una respuesta indicando que el evento aún no ha sido cerrado
+
+---
+
+### Edge Cases
+
+- ¿Qué sucede si se consulta el resumen de ventas de un evento que no existe?  
+El sistema debe recibir una respuesta de error indicando que el evento no se encuentra registrado.
+
+- ¿Qué sucede si el servicio externo no está disponible?  
+El sistema debe registrar el error y notificar que no fue posible obtener la información de ventas.
+
+---
+
+## Requirements *(mandatory)*
+
+### Functional Requirements
+
+**FR-001:** El sistema DEBE permitir consultar el resumen de ventas de un evento.
+
+**FR-002:** El sistema DEBE consumir el endpoint REST `/eventos/{id}/snapshot` expuesto por el módulo de gestión de recintos e inventario de aforo.
+
+**FR-003:** El sistema DEBE recibir el conteo de tickets agrupado por condición de liquidación.
+
+**FR-004:** El sistema DEBE utilizar esta información como insumo para el cálculo de la distribución del recaudo.
+
+**FR-005:** El sistema DEBE manejar errores cuando el evento no exista o el servicio externo no esté disponible.
+
+---
+
+## Key Entities (include if feature involves data)
+
+- **Ticket**
+
+Representa una entrada vendida para un evento.
+
+Atributos:
+
+idTicket  
+codigoTicket  
+eventoId  
+categoria  
+estado  
+valorBruto  
+fechaVenta  
+
+Relaciones:  
+Cada ticket pertenece a un evento y representa una transacción de venta utilizada para el cálculo del recaudo del evento.
+
+---
+
+- **Evento**
+
+Representa el evento para el cual se vendieron los tickets.
+
+Atributos:
+
+idEvento  
+nombreEvento  
+fechaEvento  
+estadoEvento  
+
+Relaciones:  
+Un evento agrupa múltiples tickets vendidos que serán utilizados para calcular el recaudo bruto del evento.
+
+---
+
+- **ResumenVentasEvento**
+
+Representa el consolidado de ventas de tickets para un evento.
+
+Atributos:
+
+idEvento  
+totalTicketsVendidos  
+totalRecaudoBruto  
+
+Se calcula a partir de la información de tickets vendidos para un evento y se utiliza como insumo para el proceso de liquidación.
+
+---
+
+## Success Criteria *(mandatory)*
+
+### Measurable Outcomes
+
+**SC-001:** El sistema debe obtener el resumen de ventas del evento correctamente en el 100% de las consultas realizadas sobre eventos cerrados.
+
+
+**SC-003:** El sistema debe bloquear el cálculo de liquidación si no se logra obtener el resumen de ventas del evento.
