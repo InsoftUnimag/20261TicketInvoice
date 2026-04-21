@@ -43,6 +43,13 @@ public class ConsultarResumenVentasUseCase {
             throw new BusinessException(ErrorCode.EVENT_NOT_FOUND);
         }
 
+        try {
+            snapshot.validar();
+        } catch (IllegalArgumentException e) {
+            log.error("Validacion de snapshot fallida para evento {}: {}", eventoId, e.getMessage());
+            throw new TechnicalException(ErrorCode.INVALID_REQUEST, e.getMessage());
+        }
+
         String estadoEvento = snapshot.getEstadoEvento();
         if (!esEstadoCerrado(estadoEvento)) {
             log.warn("Evento {} no está cerrado. Estado actual: {}", eventoId, estadoEvento);
