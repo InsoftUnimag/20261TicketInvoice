@@ -3,6 +3,7 @@ package com.ticketevents.liquidation.application.usecase;
 import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.ConsultarResumenVentasResponse;
 import com.ticketevents.liquidation.domain.entities.ResumenVentasEvento;
 import com.ticketevents.liquidation.domain.repositories.EventSnapshotRepository;
+import com.ticketevents.liquidation.infrastructure.mappers.ResumenVentasMapper;
 import com.ticketevents.liquidation.shared.errors.BusinessException;
 import com.ticketevents.liquidation.shared.errors.ErrorCode;
 import com.ticketevents.liquidation.shared.errors.TechnicalException;
@@ -10,19 +11,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-
 @Service
 public class ConsultarResumenVentasUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(ConsultarResumenVentasUseCase.class);
 
     private final EventSnapshotRepository eventSnapshotRepository;
+    private final ResumenVentasMapper mapper;
 
-    public ConsultarResumenVentasUseCase(EventSnapshotRepository eventSnapshotRepository) {
+    public ConsultarResumenVentasUseCase(EventSnapshotRepository eventSnapshotRepository, ResumenVentasMapper mapper) {
         this.eventSnapshotRepository = eventSnapshotRepository;
+        this.mapper = mapper;
     }
 
     public ConsultarResumenVentasResponse execute(Long eventoId) {
@@ -51,7 +50,7 @@ public class ConsultarResumenVentasUseCase {
                     "El evento aún no ha sido cerrado. Estado actual: " + estadoEvento);
         }
 
-        ConsultarResumenVentasResponse response = mapToResponse(snapshot);
+        ConsultarResumenVentasResponse response = mapper.toResponse(snapshot);
         
         log.info("Resumen de ventas obtenido exitosamente para evento: {}", eventoId);
         return response;
@@ -59,36 +58,5 @@ public class ConsultarResumenVentasUseCase {
 
     private boolean esEstadoCerrado(String estado) {
         return estado != null && estado.equalsIgnoreCase("CERRADO");
-    }
-
-    private ConsultarResumenVentasResponse mapToResponse(ResumenVentasEvento snapshot) {
-        ConsultarResumenVentasResponse response = new ConsultarResumenVentasResponse();
-        response.setEventoId(snapshot.getIdEvento());
-        response.setNombreEvento(snapshot.getNombreEvento());
-        response.setEstadoEvento(snapshot.getEstadoEvento());
-        
-        Map<String, Integer> ticketsPorCondicion = new HashMap<>();
-        Map<String, BigDecimal> recaudoPorCondicion = new HashMap<>();
-        
-        if (snapshot.getTicketsPorCondicion() != null) {
-            snapshot.getTicketsPorCondicion().forEach((k, v) -> 
-                ticketsPorCondicion.put(k.name(), v));
-        }
-        
-        if (snapshot.getRecaudoPorCondicion() != null) {
-            snapshot.getRecaudoPorCondicion().forEach((k, v) -> 
-                recaudoPorCondicion.put(k.name(), v));
-        }
-        
-        int totalTicketsVendidos = ticketsPorCondicion.values().stream()
-                .mapToInt(Integer::intValue)
-                .sum();
-        
-        response.setTicketsPorCondicion(ticketsPorCondicion);
-        response.setRecaudoPorCondicion(recaudoPorCondicion);
-        response.setTotalTicketsVendidos(totalTicketsVendidos);
-        response.setTotalRecaudoBruto(snapshot.getTotalRecaudoBruto());
-        
-        return response;
     }
 }

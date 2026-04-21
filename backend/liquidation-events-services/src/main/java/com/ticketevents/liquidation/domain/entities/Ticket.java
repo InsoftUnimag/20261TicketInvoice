@@ -15,6 +15,21 @@ public class Ticket {
 
     public Ticket(Long id, String codigo, Long eventoId, CondicionLiquidacion condicion, 
                  BigDecimal valorBruto, LocalDateTime fechaVenta) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("El ID del ticket debe ser positivo");
+        }
+        if (codigo == null || codigo.isBlank()) {
+            throw new IllegalArgumentException("El codigo del ticket es requerido");
+        }
+        if (eventoId == null || eventoId <= 0) {
+            throw new IllegalArgumentException("El ID del evento debe ser positivo");
+        }
+        if (valorBruto == null) {
+            throw new IllegalArgumentException("El valor bruto es requerido");
+        }
+        if (valorBruto.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El valor bruto no puede ser negativo");
+        }
         this.id = id;
         this.codigo = codigo;
         this.eventoId = eventoId;

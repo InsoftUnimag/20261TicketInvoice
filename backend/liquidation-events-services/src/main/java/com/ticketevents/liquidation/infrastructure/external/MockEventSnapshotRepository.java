@@ -33,12 +33,16 @@ public class MockEventSnapshotRepository implements EventSnapshotRepository {
                 resumen.setNombreEvento("Concierto Rock 2026");
                 resumen.setEstadoEvento("CERRADO");
                 
-                resumen.setTicketsPorCondicion(crearTicketsPorCondicion(100, 30, 5, 10));
+                // 100 vendidos que asistieron + 10 cortesias que asistieron = 110 validados
+                // 30 vendidos que no asistieron
+                // 5 cancelados
+                // 10 cortesias (ya incluidass en validados)
+                resumen.setTicketsPorCondicion(crearTicketsPorCondicion(110, 30, 5, 10));
                 resumen.setRecaudoPorCondicion(crearRecaudoPorCondicion(
-                    new BigDecimal("50000.00"),
-                    new BigDecimal("15000.00"),
-                    new BigDecimal("-2500.00"),
-                    BigDecimal.ZERO
+                    new BigDecimal("50000.00"),  // 100 vendidos * 500 (las 10 cortesias son gratis)
+                    new BigDecimal("15000.00"),  // 30 vendidos sin asistir * 500
+                    new BigDecimal("-2500.00"),  // 5 cancelados * 500
+                    BigDecimal.ZERO  // cortesias = 0
                 ));
                 
                 resumen.setTotalRecaudoBruto(new BigDecimal("62500.00"));
