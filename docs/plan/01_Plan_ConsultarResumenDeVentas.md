@@ -7,178 +7,149 @@ Implementar un caso de uso y endpoint que permita al módulo de liquidación con
 
 ## Technical Context
 - **Language/Version:** Java 21 LTS
-- **Primary Dependencies:** Spring Boot 3.2+, Spring Web, Spring Data JPA, WebClient/RestClient, JUnit 5, Mockito, Testcontainers
-- **Storage:** PostgreSQL (para auditoría de consultas y logs de dispersión), sin persistencia directa del resumen (se calcula on-demand)
-- **Testing:** JUnit 5, Mockito, RestAssured (contract), Testcontainers (integration)
+- **Primary Dependencies:** Spring Boot 4.0.5, Spring Web, Spring Data JPA, RestClient, JUnit 5, Mockito, Jackson
+- **Storage:** PostgreSQL (configurado pero no usado en Spec 01 - auditoría futura)
+- **Testing:** JUnit 5, Mockito
 - **Target Platform:** Backend Service (Linux/Containerized)
-- **Project Type:** Single Backend Service (Clean/Hexagonal Architecture)
+- **Project Type:** Single Backend Service (Hexagonal Architecture)
 - **Performance Goals:** <1s p95 en llamadas externas, 100% de éxito para eventos cerrados (SC-001)
 - **Constraints:** Tolerancia a fallos del servicio externo, validación estricta de estado `CERRADO`, bloqueo explícito de liquidación si falla (SC-003)
 - **Scale/Scope:** Consultas on-demand por evento, picos de concurrencia durante ventanas de cierre/liquidación
 
 ## Project Structure
 
-**Documentation(this feature)**
+### Documentation (this feature)
 
-specs/[Consultar resumen de ventas del evento]/
-├── plan.md              
-└── spec.md  
+```
+docs/
+└── plan/
+    ├── plan-template.md
+    └── 01_Plan_ConsultarResumenDeVentas.md
+```
 
-**Source Code (repository root)**
+### Source Code (Hexagonal Architecture)
 
+```
 src/
-└── main/java/com/empresa/ingreso/
+└── main/java/com/ticketevents/liquidation/
 
-├── domain/
+├── domain/                              ← CAPA 1: DOMINIO
 
-│ ├── entities/
+│   ├── entities/
+│   │   ├── Evento.java
+│   │   ├── Ticket.java
+│   │   ├── ResumenVentasEvento.java    (Entidad/Value Object según spec)
+│   │   ├── EstadoEvento.java           (enum)
+│   │   └── CondicionLiquidacion.java  (enum)
+│   └── repositories/
+│       └── EventSnapshotRepository.java  (Puerto/Port)
 
-│ │ ├── Evento.java
+├── application/                         ← CAPA 2: APLICACIÓN
 
-│ │ ├── Ticket.java
+│   └── usecase/
+│       └── ConsultarResumenVentasUseCase.java
 
-│ │ └── ResumenVentasEvento.java (DTO/Value Object de dominio)
+├── infrastructure/                    ← CAPA 3: INFRAESTRUCTURA
 
-│ └── repositories/
+│   └── adapter/
+│       ├── input/
+│       │   └── rest/
+│       │       ├── request/
+│       │       │   └── ConsultarResumenVentasRequest.java
+│       │       └── response/
+│       │           ├── ConsultarResumenVentasResponse.java
+│       │           └── ErrorResponse.java
+│       └── output/
+│           └── external/
+│               └── dto/
+│                   └── EventSnapshotDto.java   (DTO para API externa)
+│   ├── external/
+│   │   ├── EventSnapshotApiClient.java
+│   │   └── MockEventSnapshotRepository.java
+│   ├── interfaces/
+│   │   └── api/
+│   │       ├── ResumenVentasController.java
+│   │       └── GlobalExceptionHandler.java
+│   └── config/
+│       └── RestClientConfig.java
 
-│ └── EventSnapshotRepository.java (Puerto para servicio externo)
+└── shared/                             ← CAPA 4: COMPARTIDO
 
-├── application/
+    └── errors/
+        ├── ErrorCode.java
+        ├── BusinessException.java
+        └── TechnicalException.java
+```
 
-│ ├── usecase/
+**Structure Decision**: Arquitectura Hexagonal con distribución de paquetes:
+- Domain: Entidades y puertos (interfaces)
+- Application: Casos de uso (UseCases)
+- Infrastructure: Adaptadores de entrada (REST), salida (API externa), y configuración
+- Shared: Errores comunes
 
-│ │ └── ConsultarResumenVentasUseCase.java
-
-│ └── dto/
-
-│ ├── ConsultarResumenVentasRequest.java
-
-│ ├── ConsultarResumenVentasResponse.java
-
-│ └── ErrorResponse.java
-
-├── infrastructure/
-
-│ ├── external/
-
-│ │ └── EventSnapshotApiClient.java (Adaptador WebClient/RestClient)
-
-│ ├── interfaces/
-
-│ │ └── api/
-
-│ │ └── ResumenVentasController.java
-
-│ ├── config/
-
-│ │ ├── RestClientConfig.java
-
-│ │ └── TransactionConfig.java
-
-│ └── concurrency/
-
-│ └── (Reserva para throttling de consultas masivas)
-
-└── shared/
-
-├── errors/
-
-│ ├── ErrorCode.java
-
-│ ├── BusinessException.java
-
-│ └── TechnicalException.java
-
-└── constants/
-
-└── SystemConstants.java
-
-src/test/
-
-└── java/com/empresa/ingreso/
-
-├── unit/
-
-├── integration/
-
-└── concurrency/
-
-
-**Structure Decision:** Se adopta la estructura (Hexagonal/Clean). El consumo del servicio externo se abstrae detrás del puerto `domain/repositories/EventSnapshotRepository.java` para mantener el dominio desacoplado de la tecnología HTTP. `ResumenVentasEvento` se modela como objeto inmutable de dominio calculado en el Use Case, no como entidad JPA.
-
----
-
-## Phase 1: Setup (Shared Infrastructure)
+## Phase 1: Setup
 **Purpose:** Project initialization and basic structure
-- [ ] T001 Crear estructura de directorios según `Project Structure` definido
-- [ ] T002 Inicializar proyecto Java 21 con Spring Boot 3.2 (Web, Validation, JPA, Actuator)
-- [ ] T003 Configurar linting y formatters (Checkstyle/Spotless, SpotBugs) y baseline de SonarQube
-**Checkpoint:** Repositorio listo, build sin errores, convenciones aplicadas.
+- [x] T001 Crear estructura de directorios según Project Structure
+- [x] T002 Inicializar proyecto Java 21 con Spring Boot 4.0.5
+- [x] T003 Configurar dependencias Maven
 
-## Phase 2: Foundational (Blocking Prerequisites)
-**Purpose:** Core infrastructure that MUST be complete before ANY user story can be implemented
-⚠️ CRITICAL: No user story work can begin until this phase is complete
-- [ ] T004 Configurar base de datos PostgreSQL y framework de migraciones (Flyway) para tablas de auditoría
-- [ ] T005 Implementar infraestructura de errores centralizada en `shared/errors/` y `@ControllerAdvice`
-- [ ] T006 Configurar cliente HTTP externo (`WebClient`/`RestClient`) con timeouts, logging de requests y retries base
-- [ ] T007 Crear entidades de dominio base: `Evento.java`, `Ticket.java` en `domain/entities/`
-- [ ] T008 Definir puerto `EventSnapshotRepository.java` en `domain/repositories/`
-- [ ] T009 Configurar logging estructurado (JSON), Correlation ID y trazabilidad de requests
-**Checkpoint:** Foundation ready - user story implementation can now begin in parallel
+## Phase 2: Foundational
+**Purpose:** Core infrastructure
+- [x] T004 Configurar PostgreSQL (application.properties)
+- [x] T005 Implementar infraestructura de errores (shared/errors/)
+- [x] T006 Configurar RestClient
+- [x] T007 Crear entidades de dominio
+- [x] T008 Definir puerto EventSnapshotRepository
+- [ ] T009 Logging estructurado (pendiente)
 
-## Phase 3: User Story 1 - Consultar resumen de ventas del evento (Priority: P1)
-**Goal:** Exponer capacidad para obtener el consolidado de ventas de un evento cerrado desde el servicio externo, validando estado y manejando fallos externos.
-**Independent Test:** Invocar `GET /api/v1/eventos/{id}/resumen-ventas` con un ID válido y estado `CERRADO`; validar respuesta JSON con conteos por condición y total recaudado. Validar errores `404` (evento inexistente), `409` (evento no cerrado) y `502` (servicio externo caído).
+## Phase 3: User Story 1 - Consultar resumen de ventas
+**Goal:** Exponer capacidad para obtener el consolidado de ventas de un evento cerrado desde el servicio externo, validando estado y manejando fallos externos. Independent Test: Invocar GET /api/v1/eventos/{id}/resumen-ventas con un ID válido y estado CERRADO; validar respuesta JSON con conteos por condición y total recaudado. Validar errores 404 (evento inexistente), 409 (evento no cerrado) y 502 (servicio externo caído).
 
 ### Tests for User Story 1
-- [ ] T010 [P] [US1] Contract test para endpoint en `src/test/.../integration/ResumenVentasApiContractTest.java`
-- [ ] T011 [P] [US1] Integration test con WireMock del servicio externo en `src/test/.../integration/ConsultarResumenVentasIntegrationTest.java`
-- [ ] T012 [US1] Unit tests para `ConsultarResumenVentasUseCase` en `src/test/.../unit/ConsultarResumenVentasUseCaseTest.java`
+- [ ] T010 Contract test para endpoint
+- [ ] T011 Integration test con WireMock
+- [x] T012 Unit tests para UseCase
 
 ### Implementation for User Story 1
-- [ ] T013 [P] [US1] Crear DTOs `Request`/`Response` en `application/dto/`
-- [ ] T014 [US1] Implementar `EventSnapshotApiClient` en `infrastructure/external/` (adaptador a `/eventos/{id}/snapshot`)
-- [ ] T015 [US1] Implementar `ConsultarResumenVentasUseCase` en `application/usecase/` (orquestación, validación estado, agregación de totales)
-- [ ] T016 [US1] Implementar `ResumenVentasController` en `infrastructure/interfaces/api/`
-- [ ] T017 [US1] Integrar manejo de errores: `BusinessException` (no cerrado/no existe) y `TechnicalException` (externo no disponible)
-- [ ] T018 [US1] Añadir métricas y logs específicos para trazabilidad de liquidación
-**Checkpoint:** At this point, User Story 1 should be fully functional and testable independently
+- [x] T013 [US1] Crear Request/Response en infrastructure/dto/
+- [x] T014 [US1] Implementar EventSnapshotApiClient
+- [x] T015 [US1] Implementar ConsultarResumenVentasUseCase
+- [x] T016 [US1] Implementar ResumenVentasController
+- [x] T017 [US1] Integrar manejo de errores
+- [ ] T018 [US1] Métricas y logs
 
 ## Phase 4: Polish & Cross-Cutting Concerns
-**Purpose:** Improvements that affect multiple user stories
-- [ ] T019 Documentación OpenAPI/Swagger y guía de integración para módulo de liquidación
-- [ ] T020 Implementar Circuit Breaker y Retry Policy robusto para tolerancia a fallos externos (Resilience4j)
-- [ ] T021 Añadir tests de concurrencia y rate-limiting en `src/test/.../concurrency/`
-- [ ] T022 Hardening: validación estricta de inputs, sanitización de logs, rate limiting por IP/módulo
-- [ ] T023 Code cleanup, optimización de mapeos y revisión de arquitectura por pares
-**Checkpoint:** Feature ready for staging deployment and financial UAT
+**Purpose:** Improvements
+- [ ] T019 Documentación OpenAPI/Swagger
+- [ ] T020 Circuit Breaker (Resilience4j)
+- [ ] T021 Tests de concurrencia
+- [ ] T022 Validaciones más estrictas (@Valid, constraints)
+- [ ] T023 Code cleanup
 
 ---
 
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
-- **Setup (Phase 1):** No dependencies - can start immediately
-- **Foundational (Phase 2):** Depends on Setup completion - **BLOCKS** all user stories
-- **User Stories (Phase 3):** All depend on Foundational phase completion. Proceed sequentially for this feature.
-- **Polish (Phase 4):** Depends on User Story 1 completion and test validation
-
-### User Story Dependencies
-- **User Story 1 (P1):** Can start after Foundational (Phase 2). Standalone for this feature.
-- **External Service:** Runtime dependency. Must be available/mocked during development. Does not block build if abstracted correctly.
+- **Setup:** Can start immediately
+- **Foundational:** Blocks all user stories
+- **User Stories:** Depend on Foundational
+- **Polish:** Depends on User Story 1
 
 ### Within Each User Story
 1. DTOs & Domain Models before services
 2. Repository Interface before External Client implementation
 3. Core Use Case logic before Controller/Endpoint
 4. Error handling & Logging after core implementation
-5. Tests after implementation (or TDD if preferred)
-6. Story complete before moving to Polish phase
+5. Tests after implementation
 
-### Notes
+---
+
+## Notes
 - `[P]` = Prioridad/Paralelizable, `[US1]` = Trazabilidad a Historia de Usuario 1
-- El resumen se calcula dinámicamente. No se persiste `ResumenVentasEvento` para evitar inconsistencia con el snapshot externo.
-- SC-003 exige bloqueo de liquidación: el `UseCase` debe lanzar excepciones no recuperables que el módulo consumidor interprete como `ABORT_LIQUIDATION`.
-- Validar explícitamente `estadoEvento == CERRADO`. Si es `EN_CURSO` o `PROGRAMADO`, retornar `BusinessException` con código `EVENT_NOT_CLOSED`.
-- Commit after each task or logical group. Stop at any checkpoint to validate story independently.
-- Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence.
+- El resumen se calcula dinámicamente. No se persiste ResumenVentasEvento
+- SC-003 exige bloqueo de液态ación: el UseCase lanza excepciones no recuperables
+- Validar explícitamente estadoEvento == CERRADO
+- Mock disponible en MockEventSnapshotRepository para pruebas sin Módulo 1
+
+---
