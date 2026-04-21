@@ -66,11 +66,6 @@ public class ConsultarResumenVentasUseCase {
         response.setEventoId(snapshot.getIdEvento());
         response.setNombreEvento(snapshot.getNombreEvento());
         response.setEstadoEvento(snapshot.getEstadoEvento());
-        response.setTotalTicketsVendidos(snapshot.getTotalTicketsVendidos());
-        response.setTotalTicketsValidados(snapshot.getTotalTicketsValidados());
-        response.setTotalTicketsCancelados(snapshot.getTotalTicketsCancelados());
-        response.setTotalTicketsCortesia(snapshot.getTotalTicketsCortesia());
-        response.setTotalRecaudoBruto(snapshot.getTotalRecaudoBruto());
         
         Map<String, Integer> ticketsPorCondicion = new HashMap<>();
         Map<String, BigDecimal> recaudoPorCondicion = new HashMap<>();
@@ -85,8 +80,14 @@ public class ConsultarResumenVentasUseCase {
                 recaudoPorCondicion.put(k.name(), v));
         }
         
+        int totalTicketsVendidos = ticketsPorCondicion.values().stream()
+                .mapToInt(Integer::intValue)
+                .sum();
+        
         response.setTicketsPorCondicion(ticketsPorCondicion);
         response.setRecaudoPorCondicion(recaudoPorCondicion);
+        response.setTotalTicketsVendidos(totalTicketsVendidos);
+        response.setTotalRecaudoBruto(snapshot.getTotalRecaudoBruto());
         
         return response;
     }

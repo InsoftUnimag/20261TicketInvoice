@@ -34,22 +34,18 @@ class ConsultarResumenVentasUseCaseTest {
         snapshot.setIdEvento(id);
         snapshot.setNombreEvento("Concierto Rock 2026");
         snapshot.setEstadoEvento(estado);
-        snapshot.setTotalTicketsVendidos(100);
-        snapshot.setTotalTicketsValidados(80);
-        snapshot.setTotalTicketsCancelados(5);
-        snapshot.setTotalTicketsCortesia(15);
-        snapshot.setTotalRecaudoBruto(new BigDecimal("50000.00"));
+        snapshot.setTotalRecaudoBruto(new BigDecimal("62500.00"));
         
         Map<CondicionLiquidacion, Integer> ticketsPorCondicion = new HashMap<>();
-        ticketsPorCondicion.put(CondicionLiquidacion.VALIDADO, 80);
-        ticketsPorCondicion.put(CondicionLiquidacion.VENDIDO, 5);
+        ticketsPorCondicion.put(CondicionLiquidacion.VALIDADO, 100);
+        ticketsPorCondicion.put(CondicionLiquidacion.VENDIDO, 30);
         ticketsPorCondicion.put(CondicionLiquidacion.CANCELADO, 5);
-        ticketsPorCondicion.put(CondicionLiquidacion.CORTESIA, 15);
+        ticketsPorCondicion.put(CondicionLiquidacion.CORTESIA, 10);
         snapshot.setTicketsPorCondicion(ticketsPorCondicion);
         
         Map<CondicionLiquidacion, BigDecimal> recaudoPorCondicion = new HashMap<>();
-        recaudoPorCondicion.put(CondicionLiquidacion.VALIDADO, new BigDecimal("40000.00"));
-        recaudoPorCondicion.put(CondicionLiquidacion.VENDIDO, new BigDecimal("2500.00"));
+        recaudoPorCondicion.put(CondicionLiquidacion.VALIDADO, new BigDecimal("50000.00"));
+        recaudoPorCondicion.put(CondicionLiquidacion.VENDIDO, new BigDecimal("15000.00"));
         recaudoPorCondicion.put(CondicionLiquidacion.CANCELADO, new BigDecimal("-2500.00"));
         recaudoPorCondicion.put(CondicionLiquidacion.CORTESIA, BigDecimal.ZERO);
         snapshot.setRecaudoPorCondicion(recaudoPorCondicion);
@@ -69,11 +65,13 @@ class ConsultarResumenVentasUseCaseTest {
         assertNotNull(response);
         assertEquals(eventoId, response.getEventoId());
         assertEquals("CERRADO", response.getEstadoEvento());
-        assertEquals(100, response.getTotalTicketsVendidos());
-        assertEquals(80, response.getTotalTicketsValidados());
-        assertEquals(5, response.getTotalTicketsCancelados());
-        assertEquals(15, response.getTotalTicketsCortesia());
-        assertEquals(new BigDecimal("50000.00"), response.getTotalRecaudoBruto());
+        assertEquals(145, response.getTotalTicketsVendidos());
+        assertEquals(new BigDecimal("62500.00"), response.getTotalRecaudoBruto());
+        
+        assertEquals(100, response.getTicketsPorCondicion().get("VALIDADO"));
+        assertEquals(30, response.getTicketsPorCondicion().get("VENDIDO"));
+        assertEquals(5, response.getTicketsPorCondicion().get("CANCELADO"));
+        assertEquals(10, response.getTicketsPorCondicion().get("CORTESIA"));
         
         verify(eventSnapshotRepository).getSnapshot(eventoId);
     }

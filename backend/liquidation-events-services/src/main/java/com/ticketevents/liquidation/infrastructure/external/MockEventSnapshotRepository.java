@@ -32,78 +32,62 @@ public class MockEventSnapshotRepository implements EventSnapshotRepository {
             case 1 -> {
                 resumen.setNombreEvento("Concierto Rock 2026");
                 resumen.setEstadoEvento("CERRADO");
-                resumen.setTotalTicketsVendidos(150);
-                resumen.setTotalTicketsValidados(120);
-                resumen.setTotalTicketsCancelados(10);
-                resumen.setTotalTicketsCortesia(20);
-                resumen.setTotalRecaudoBruto(new BigDecimal("75000.00"));
                 
-                resumen.setTicketsPorCondicion(crearTicketsPorCondicion(120, 10, 10, 20));
+                resumen.setTicketsPorCondicion(crearTicketsPorCondicion(100, 30, 5, 10));
                 resumen.setRecaudoPorCondicion(crearRecaudoPorCondicion(
-                    new BigDecimal("60000.00"),
-                    new BigDecimal("5000.00"),
-                    new BigDecimal("-5000.00"),
+                    new BigDecimal("50000.00"),
+                    new BigDecimal("15000.00"),
+                    new BigDecimal("-2500.00"),
                     BigDecimal.ZERO
                 ));
+                
+                resumen.setTotalRecaudoBruto(new BigDecimal("62500.00"));
             }
             case 2 -> {
                 resumen.setNombreEvento("Festival de Teatro Nacional");
                 resumen.setEstadoEvento("CERRADO");
-                resumen.setTotalTicketsVendidos(500);
-                resumen.setTotalTicketsValidados(480);
-                resumen.setTotalTicketsCancelados(15);
-                resumen.setTotalTicketsCortesia(5);
-                resumen.setTotalRecaudoBruto(new BigDecimal("250000.00"));
                 
-                resumen.setTicketsPorCondicion(crearTicketsPorCondicion(480, 15, 15, 5));
+                resumen.setTicketsPorCondicion(crearTicketsPorCondicion(400, 80, 10, 10));
                 resumen.setRecaudoPorCondicion(crearRecaudoPorCondicion(
-                    new BigDecimal("240000.00"),
-                    new BigDecimal("7500.00"),
-                    new BigDecimal("-7500.00"),
+                    new BigDecimal("200000.00"),
+                    new BigDecimal("40000.00"),
+                    new BigDecimal("-5000.00"),
                     BigDecimal.ZERO
                 ));
+                
+                resumen.setTotalRecaudoBruto(new BigDecimal("235000.00"));
             }
             case 3 -> {
                 resumen.setNombreEvento("Copa América - Semifinal");
                 resumen.setEstadoEvento("CERRADO");
-                resumen.setTotalTicketsVendidos(2000);
-                resumen.setTotalTicketsValidados(1950);
-                resumen.setTotalTicketsCancelados(30);
-                resumen.setTotalTicketsCortesia(20);
-                resumen.setTotalRecaudoBruto(new BigDecimal("500000.00"));
                 
-                resumen.setTicketsPorCondicion(crearTicketsPorCondicion(1950, 30, 30, 20));
+                resumen.setTicketsPorCondicion(crearTicketsPorCondicion(1800, 150, 30, 20));
                 resumen.setRecaudoPorCondicion(crearRecaudoPorCondicion(
-                    new BigDecimal("487500.00"),
-                    new BigDecimal("7500.00"),
+                    new BigDecimal("450000.00"),
+                    new BigDecimal("37500.00"),
                     new BigDecimal("-7500.00"),
                     BigDecimal.ZERO
                 ));
+                
+                resumen.setTotalRecaudoBruto(new BigDecimal("480000.00"));
             }
             case 4 -> {
                 resumen.setNombreEvento("Expo Tecnología 2026");
                 resumen.setEstadoEvento("EN_CURSO");
-                resumen.setTotalTicketsVendidos(800);
-                resumen.setTotalTicketsValidados(400);
-                resumen.setTotalTicketsCancelados(5);
-                resumen.setTotalTicketsCortesia(50);
-                resumen.setTotalRecaudoBruto(new BigDecimal("160000.00"));
                 
-                resumen.setTicketsPorCondicion(crearTicketsPorCondicion(400, 345, 5, 50));
+                resumen.setTicketsPorCondicion(crearTicketsPorCondicion(300, 400, 20, 30));
                 resumen.setRecaudoPorCondicion(crearRecaudoPorCondicion(
+                    new BigDecimal("60000.00"),
                     new BigDecimal("80000.00"),
-                    new BigDecimal("69000.00"),
-                    new BigDecimal("-1000.00"),
+                    new BigDecimal("-4000.00"),
                     BigDecimal.ZERO
                 ));
+                
+                resumen.setTotalRecaudoBruto(new BigDecimal("136000.00"));
             }
             default -> {
                 resumen.setNombreEvento("Evento #" + eventoId);
                 resumen.setEstadoEvento("PROGRAMADO");
-                resumen.setTotalTicketsVendidos(0);
-                resumen.setTotalTicketsValidados(0);
-                resumen.setTotalTicketsCancelados(0);
-                resumen.setTotalTicketsCortesia(0);
                 resumen.setTotalRecaudoBruto(BigDecimal.ZERO);
                 resumen.setTicketsPorCondicion(new HashMap<>());
                 resumen.setRecaudoPorCondicion(new HashMap<>());
