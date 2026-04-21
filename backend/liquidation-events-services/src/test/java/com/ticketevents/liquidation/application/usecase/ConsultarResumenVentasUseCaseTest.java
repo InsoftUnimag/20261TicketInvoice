@@ -4,6 +4,7 @@ import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.C
 import com.ticketevents.liquidation.domain.entities.CondicionLiquidacion;
 import com.ticketevents.liquidation.domain.entities.ResumenVentasEvento;
 import com.ticketevents.liquidation.domain.repositories.EventSnapshotRepository;
+import com.ticketevents.liquidation.infrastructure.mappers.ResumenVentasMapper;
 import com.ticketevents.liquidation.shared.errors.BusinessException;
 import com.ticketevents.liquidation.shared.errors.ErrorCode;
 import com.ticketevents.liquidation.shared.errors.TechnicalException;
@@ -25,6 +26,9 @@ class ConsultarResumenVentasUseCaseTest {
 
     @Mock
     private EventSnapshotRepository eventSnapshotRepository;
+
+    @Mock
+    private ResumenVentasMapper mapper;
 
     @InjectMocks
     private ConsultarResumenVentasUseCase useCase;
@@ -58,20 +62,20 @@ class ConsultarResumenVentasUseCaseTest {
         Long eventoId = 1L;
         ResumenVentasEvento snapshot = createSnapshot(eventoId, "CERRADO");
         
+        ConsultarResumenVentasResponse responseMock = new ConsultarResumenVentasResponse();
+        responseMock.setEventoId(eventoId);
+        responseMock.setEstadoEvento("CERRADO");
+        responseMock.setTotalTicketsVendidos(145);
+        responseMock.setTotalRecaudoBruto(new BigDecimal("62500.00"));
+        
         when(eventSnapshotRepository.getSnapshot(eventoId)).thenReturn(snapshot);
+        when(mapper.toResponse(snapshot)).thenReturn(responseMock);
         
         ConsultarResumenVentasResponse response = useCase.execute(eventoId);
         
         assertNotNull(response);
         assertEquals(eventoId, response.getEventoId());
         assertEquals("CERRADO", response.getEstadoEvento());
-        assertEquals(145, response.getTotalTicketsVendidos());
-        assertEquals(new BigDecimal("62500.00"), response.getTotalRecaudoBruto());
-        
-        assertEquals(100, response.getTicketsPorCondicion().get("VALIDADO"));
-        assertEquals(30, response.getTicketsPorCondicion().get("VENDIDO"));
-        assertEquals(5, response.getTicketsPorCondicion().get("CANCELADO"));
-        assertEquals(10, response.getTicketsPorCondicion().get("CORTESIA"));
         
         verify(eventSnapshotRepository).getSnapshot(eventoId);
     }

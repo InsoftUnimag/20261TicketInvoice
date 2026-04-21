@@ -13,6 +13,11 @@ public class TechnicalException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
+    public TechnicalException(ErrorCode errorCode, String customMessage) {
+        super(customMessage);
+        this.errorCode = errorCode;
+    }
+
     public TechnicalException(ErrorCode errorCode, String customMessage, Throwable cause) {
         super(customMessage, cause);
         this.errorCode = errorCode;

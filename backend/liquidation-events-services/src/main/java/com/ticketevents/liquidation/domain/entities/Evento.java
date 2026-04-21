@@ -11,6 +11,15 @@ public class Evento {
     public Evento() {}
 
     public Evento(Long id, String nombre, LocalDateTime fecha, EstadoEvento estado) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("El ID del evento debe ser positivo");
+        }
+        if (nombre == null || nombre.isBlank()) {
+            throw new IllegalArgumentException("El nombre del evento es requerido");
+        }
+        if (estado == null) {
+            throw new IllegalArgumentException("El estado del evento es requerido");
+        }
         this.id = id;
         this.nombre = nombre;
         this.fecha = fecha;

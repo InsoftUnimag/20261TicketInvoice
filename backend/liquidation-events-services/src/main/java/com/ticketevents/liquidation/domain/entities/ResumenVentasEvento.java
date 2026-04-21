@@ -13,6 +13,45 @@ public class ResumenVentasEvento {
 
     public ResumenVentasEvento() {}
 
+    public void validar() {
+        if (totalRecaudoBruto == null) {
+            throw new IllegalArgumentException("El recaudo bruto es requerido");
+        }
+        if (totalRecaudoBruto.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El recaudo bruto no puede ser negativo");
+        }
+        if (ticketsPorCondicion == null || ticketsPorCondicion.isEmpty()) {
+            throw new IllegalArgumentException("Los tickets por condicion son requeridos");
+        }
+        validarSumaTickets();
+        validarRecaudo();
+    }
+
+    private void validarSumaTickets() {
+        int suma = ticketsPorCondicion.values().stream()
+                .mapToInt(Integer::intValue)
+                .sum();
+        if (suma <= 0) {
+            throw new IllegalArgumentException("El total de tickets debe ser mayor a 0");
+        }
+    }
+
+    private void validarRecaudo() {
+        if (recaudoPorCondicion != null) {
+            for (Map.Entry<CondicionLiquidacion, BigDecimal> entry : recaudoPorCondicion.entrySet()) {
+                CondicionLiquidacion condicion = entry.getKey();
+                BigDecimal valor = entry.getValue();
+                
+                if (valor != null && valor.compareTo(BigDecimal.ZERO) < 0) {
+                    if (condicion != CondicionLiquidacion.CANCELADO) {
+                        throw new IllegalArgumentException(
+                            "Solo CANCELADO puede tener valor negativo. Encontrado en: " + condicion);
+                    }
+                }
+            }
+        }
+    }
+
     public Long getIdEvento() { return idEvento; }
     public void setIdEvento(Long idEvento) { this.idEvento = idEvento; }
     public String getNombreEvento() { return nombreEvento; }
