@@ -101,9 +101,9 @@ src/
 - [x] T007 Puerto AccessControlRepository (definir)
 
 ### Nuevas tareas para Spec 02
-- [ ] T008 Crear entidad `RegistroIngreso.java` en domain/entities/
-- [ ] T009 Crear enum `EstadoIngreso.java` en domain/entities/
-- [ ] T010 Definir puerto `AccessControlRepository.java` en domain/repositories/
+- [x] T008 Crear entidad `RegistroIngreso.java` en domain/entities/
+- [x] T009 Crear enum `EstadoIngreso.java` en domain/entities/
+- [x] T010 Definir puerto `AccessControlRepository.java` en domain/repositories/
 
 ## Phase 3: User Story 1 - Consultar estado de ingreso
 **Goal:** Exponer capacidad para obtener el estado de check-in de los tickets de un evento desde el servicio externo, aplicando reglas de negocio para tickets sin registro y garantizando integridad para liquidación.
@@ -111,16 +111,16 @@ src/
 **Independent Test:** Invocar GET /api/v1/eventos/{id}/estado-ingreso con ID válido. Validar respuesta con lista de tickets y estados (CHECKED_IN, NOT_ATTENDED). Verificar errores 404 (evento inexistente) y 502 (servicio caído).
 
 ### Tests for User Story 1
-- [ ] T011 Unit tests para ConsultarEstadoIngresoUseCase
+- [x] T011 Unit tests para ConsultarEstadoIngresoUseCase
 
 ### Implementation for User Story 1
-- [ ] T012 [US1] Crear Request/Response en infrastructure/adapter/input/rest/
-- [ ] T013 [US1] Implementar AccessControlApiClient en infrastructure/external/
-- [ ] T014 [US1] Implementar MockAccessControlRepository
-- [ ] T015 [US1] Implementar ConsultarEstadoIngresoUseCase
-- [ ] T016 [US1] Implementar EstadoIngresoController
-- [ ] T017 [US1] Integrar manejo de errores
-- [ ] T018 [US1] Tests unitarios
+- [x] T012 [US1] Crear Request/Response en infrastructure/adapter/input/rest/
+- [x] T013 [US1] Implementar AccessControlApiClient en infrastructure/external/
+- [x] T014 [US1] Implementar MockAccessControlRepository
+- [x] T015 [US1] Implementar ConsultarEstadoIngresoUseCase
+- [x] T016 [US1] Implementar EstadoIngresoController
+- [x] T017 [US1] Integrar manejo de errores
+- [x] T018 [US1] Tests unitarios
 
 ## Phase 4: Polish & Cross-Cutting Concerns
 **Purpose:** Improvements
