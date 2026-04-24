@@ -4,7 +4,8 @@ public enum ErrorCode {
     EVENT_NOT_FOUND("EVENT_NOT_FOUND", "El evento no se encuentra registrado"),
     EVENT_NOT_CLOSED("EVENT_NOT_CLOSED", "El evento aún no ha sido cerrado"),
     EXTERNAL_SERVICE_UNAVAILABLE("EXTERNAL_SERVICE_UNAVAILABLE", "No fue posible obtener la información de ventas"),
-    INVALID_REQUEST("INVALID_REQUEST", "Solicitud inválida");
+    INVALID_REQUEST("INVALID_REQUEST", "Solicitud inválida"),
+    RECINTO_NOT_FOUND("RECINTO_NOT_FOUND", "El recinto no se encuentra registrado");
 
     private final String code;
     private final String message;
