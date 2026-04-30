@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    container_name: ticket-events-postgres
+    environment:
+      POSTGRES_DB: ticket_events
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  app:
+    build: .
+    container_name: ticket-events-liquidation-app
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/ticket_events
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
