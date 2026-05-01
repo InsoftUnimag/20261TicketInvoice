@@ -3,7 +3,7 @@
 **Spec:** `08_CalcularDistribucionDelRecaudo.md`
 
 ## Summary
-Implementar un caso de uso que permita al administrador financiero calcular la distribución del recaudo de un evento finalizado para conocer los valores preliminares antes de determinar el tipo de liquidación final. Se debe aplicar comisión de plataforma, determinar pago al promotor, y registrar el resultado como "Distribución Preliminar".
+Implementar un caso de uso que permita al administrador financiero calcular la distribución del recaudo de un evento finalizado para conocer los valores preliminares antes de determinar el tipo de liquidación final.
 
 ## Technical Context
 - **Language/Version:** Java 21 LTS
@@ -84,29 +84,33 @@ src/
 - Infrastructure: Adaptadores de entrada (REST), salida (DTOs), y mappers
 - Shared: Errores comunes
 
-## Phase 1: Setup
+## Phase 1: Setup (Shared Infrastructure)
 **Purpose:** Project initialization
 - [x] T001 Estructura de directorios (ya existe del proyecto base)
 - [x] T002 Proyecto Java 21 con Spring Boot 4.0.5 (ya existe del proyecto base)
 - [x] T003 Dependencias Maven (ya existe del proyecto base)
 
-## Phase 2: Foundational
-**Purpose:** Core infrastructure
-- [x] T004 Infraestructura de errores (ya existe del Spec 01)
-- [x] T005 Configuraciones base (ya existe del proyecto)
-- [x] T006 Entidad ResumenVentasEvento.java (ya existe)
-- [x] T007 Entidad ConfiguracionLiquidacion.java (ya existe)
-- [x] T008 Puerto EventSnapshotRepository.java (ya existe)
-- [x] T009 Puerto ConfiguracionLiquidacionRepository.java (ya existe)
+## Phase 2: Foundational (Blocking Prerequisites)
+**Purpose:** Core infrastructure that MUST be complete before ANY user story can be implemented
 
-### Nuevas áreas para Spec 08
-- [ ] T010 Crear entidad `DistribucionRecaudo.java`
-- [ ] T011 Definir puerto `DistribucionRecaudoRepository.java` (opcional)
+### Existing entities for Spec 08
+- [x] T004 Entidad ResumenVentasEvento.java (ya existe)
+- [x] T005 Entidad ConfiguracionLiquidacion.java (ya existe)
+- [x] T006 Puerto EventSnapshotRepository.java (ya existe)
+- [x] T007 Puerto ConfiguracionLiquidacionRepository.java (ya existe)
 
-## Phase 3: User Story 1 - Calcular Distribución del Recaudo
+### New areas for Spec 08
+- [ ] T008 Crear entidad `DistribucionRecaudo.java`
+- [ ] T009 Definir puerto `DistribucionRecaudoRepository.java` (opcional)
+
+**Checkpoint**: Foundation ready - user story implementation can now begin
+
+---
+
+## Phase 3: User Story 1 - Calcular Distribución del Recaudo (Priority: P1)
 **Goal:** Calcular automáticamente el recaudo total bruto del evento, descontar tickets cancelados y cortesías, y generar valor neto preliminar.
 
-**Independent Test:** Calcular el recaudo bruto teniendo en cuenta:
+**Independent Test**: Calcular el recaudo bruto teniendo en cuenta:
 - Aplica comisión de plataforma
 - Determina pago final al promotor
 - Registra el resultado del cálculo de ingresos
@@ -114,21 +118,25 @@ src/
 - Estado de la liquidación del evento
 
 ### Tests for User Story 1
-- [ ] T012 Unit tests para CalcularDistribucionRecaudoUseCase
-- [ ] T013 Integration tests para cálculo
+- [ ] T010 [P] [US1] Unit test para CalcularDistribucionRecaudoUseCase
+- [ ] T011 [P] [US1] Integration test para cálculo
 
 ### Implementation for User Story 1
-- [ ] T014 [US1] Crear Request/Response en infrastructure/adapter/input/rest/
-- [ ] T015 [US1] Implementar CalcularDistribucionRecaudoUseCase (retorna DistribucionRecaudoDto)
-- [ ] T016 [US1] Implementar CalcularDistribucionController (POST endpoint)
-- [ ] T017 [US1] Implementar DistribucionRecaudoMapper (Application DTO → Response DTO)
-- [ ] T018 [US1] Integrar manejo de errores
-- [ ] T019 [US1] Tests unitarios
+- [ ] T012 [US1] Crear Request/Response en infrastructure/adapter/input/rest/
+- [ ] T013 [US1] Implementar CalcularDistribucionRecaudoUseCase (retorna DistribucionRecaudoDto)
+- [ ] T014 [US1] Implementar CalcularDistribucionController (POST endpoint)
+- [ ] T015 [US1] Implementar DistribucionRecaudoMapper (Application DTO → Response DTO)
+- [ ] T016 [US1] Integrar manejo de errores
+- [ ] T017 [US1] Tests unitarios
 
-## Phase 4: User Story 2 - Condición cuando el recinto es teatro
+**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
+
+---
+
+## Phase 4: User Story 2 - Condición cuando el recinto es teatro (Priority: P2)
 **Goal:** Aplicar lógica especial cuando el tipo de recinto es teatro para el cálculo de distribución.
 
-**Independent Test:** Dado que se registró un recinto de tipo teatro, cuando se calcula la distribución, el sistema debe calcular:
+**Independent Test**: Dado que se registró un recinto de tipo teatro, cuando se calcula la distribución, el sistema debe calcular:
 - El total bruto recaudado
 - Calcular el valor neto preliminar
 - Registrar el resultado como "Distribución Preliminar"
@@ -137,55 +145,73 @@ src/
 - Registrar estado de la liquidación
 
 ### Tests for User Story 2
-- [ ] T020 Unit tests para lógica de teatro
-- [ ] T021 Integration tests para cálculo con teatro
+- [ ] T018 [P] [US2] Unit test para lógica de teatro
+- [ ] T019 [P] [US2] Integration test para cálculo con teatro
 
 ### Implementation for User Story 2
-- [ ] T022 [US2] Actualizar Use Case para manejar tipo de recinto
-- [ ] T023 [US2] Implementar lógica de descuentos (cancelados, cortesías)
-- [ ] T024 [US2] Tests unitarios
+- [ ] T020 [US2] Actualizar Use Case para manejar tipo de recinto
+- [ ] T021 [US2] Implementar lógica de descuentos (cancelados, cortesías)
+- [ ] T022 [US2] Tests unitarios
+
+**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
+
+---
 
 ## Phase 5: Edge Cases
 **Purpose:** Manejo de casos especiales
 
 ### Tests for Edge Cases
-- [ ] T025 Unit tests: Evento sin ventas (recaudo cero, estado "Sin recaudo")
-- [ ] T026 Unit tests: Valores de comisión no definidos (bloquear y solicitar establecer)
+- [ ] T023 Unit tests: Evento sin ventas (recaudo cero, estado "Sin recaudo")
+- [ ] T024 Unit tests: Valores de comisiones no definidos (bloquear y solicitar establecer)
 
 ### Implementation for Edge Cases
-- [ ] T027 [EC] Validar evento finalizado antes de calcular
-- [ ] T028 [EC] Manejar evento sin ventas
-- [ ] T029 [EC] Manejar comisiones no definidas
+- [ ] T025 Validar evento finalizado antes de calcular
+- [ ] T026 Manejar evento sin ventas
+- [ ] T027 Manejar comisiones no definidas
 
-## Phase 6: Polish & Cross-Cutting Concerns
-**Purpose:** Improvements
-- [ ] T030 OpenAPI/Swagger documentation
-- [ ] T031 Circuit Breaker (Resilience4j)
-- [ ] T032 Performance optimization (<1:52 para 500 tickets)
-- [ ] T033 Code cleanup
+**Checkpoint**: All user stories should now be independently functional
+
+---
+
+## Phase N: Polish & Cross-Cutting Concerns
+**Purpose:** Improvements that affect multiple user stories
+- [ ] T028 OpenAPI/Swagger documentation
+- [ ] T029 Circuit Breaker (Resilience4j)
+- [ ] T030 Performance optimization (<1:52 para 500 tickets)
+- [ ] T031 Code cleanup
 
 ---
 
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
-- **Setup:** Listo (proyecto base)
-- **Foundational:** Listo + entidad DistribucionRecaudo
-- **User Stories:** Depende de Foundational
-- **Edge Cases:** Depende de User Stories
-- **Polish:** Depende de todo lo anterior
+- **Setup (Phase 1)**: No dependencies - can start immediately
+- **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
+- **User Stories (Phase 3+)**: All depend on Foundational phase completion
+- **Edge Cases**: Depends on User Stories
+- **Polish (Final Phase)**: Depends on all desired user stories being complete
+
+### User Story Dependencies
+- **User Story 1 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories
+- **User Story 2 (P2)**: Can start after Foundational (Phase 2) - May integrate with US1 but should be independently testable
+- **Edge Cases**: Depend on User Stories
 
 ### Within Each User Story
-1. Entidades antes de repositorios
-2. Interfaces de repositorio antes de implementaciones
-3. Lógica de Use Case antes de Controller
-4. Mappers después de Use Cases
-5. Tests después de implementación
+- Models before services
+- Services before endpoints
+- Core implementation before integration
+- Story complete before moving to next priority
+- Tests after implementation
 
 ---
 
 ## Notes
-- `[P]` = Prioridad/Paralelizable, `[US1]` = Trazabilidad a Historia de Usuario 1
+- [Story] label maps task to specific user story for traceability
+- Each user story should be independently completable and testable
+- Verify tests pass
+- Commit after each task or logical group
+- Stop at any checkpoint to validate story independently
+- Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
 - Los Use Cases retornan Application DTOs (de `infrastructure/adapter/output/external/dto/`)
 - Los Controllers usan Mappers para convertir: Application DTO → Response DTO
 - Request DTOs están en `infrastructure/adapter/input/rest/request/`
@@ -199,11 +225,11 @@ src/
 
 ```
 Cliente → CalcularDistribucionController → CalcularDistribucionRecaudoUseCase → Domain → Infrastructure
-                                                                                    ↓
-                                                           DistribucionRecaudoDto (output/external/dto)
-                                                                                               ↓
-                                                           Mapper: DistribucionRecaudoDto → CalcularDistribucionResponse
-                                                                                               ↓
+                                                                         ↓
+                                                    DistribucionRecaudoDto (output/external/dto)
+                                                                                           ↓
+                                                    Mapper: DistribucionRecaudoDto → CalcularDistribucionResponse
+                                                                                           ↓
 Cliente ← CalcularDistribucionResponse ← CalcularDistribucionController
 ```
 

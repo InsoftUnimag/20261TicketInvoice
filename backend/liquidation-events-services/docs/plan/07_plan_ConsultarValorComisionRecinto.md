@@ -3,7 +3,7 @@
 **Spec:** `07_ConsultarValorComisionRecinto.md`
 
 ## Summary
-Implementar un caso de uso y endpoint que permita al administrador de recinto consultar el valor de la comisión asociada al recinto, para verificar las condiciones económicas previamente acordadas. Se debe retornar el tipo de comisión (porcentaje o valor fijo) y el valor configurado, utilizando Arquitectura Hexagonal con Application DTOs.
+Implementar un caso de uso y endpoint que permita al administrador de recinto consultar el valor de la comisión asociada al recinto, para verificar que se registraron las condiciones económicas previamente acordadas.
 
 ## Technical Context
 - **Language/Version:** Java 21 LTS
@@ -79,87 +79,128 @@ src/
 - Infrastructure: Adaptadores de entrada (REST), salida (DTOs), y mappers
 - Shared: Errores comunes
 
-## Phase 1: Setup
+## Phase 1: Setup (Shared Infrastructure)
 **Purpose:** Project initialization
 - [x] T001 Estructura de directorios (ya existe del proyecto base)
 - [x] T002 Proyecto Java 21 con Spring Boot 4.0.5 (ya existe del proyecto base)
 - [x] T003 Dependencias Maven (ya existe del proyecto base)
 
-## Phase 2: Foundational
-**Purpose:** Core infrastructure
-- [x] T004 Infraestructura de errores (ya existe del Spec 01)
-- [x] T005 Configuraciones base (ya existe del proyecto)
-- [x] T006 Entidad ComisionRecinto.java (ya existe)
-- [x] T007 Entidad Recinto.java (ya existe)
-- [x] T008 Puerto ComisionRecintoRepository.java (ya existe)
-- [x] T009 Puerto RecintoRepository.java (ya existe)
+## Phase 2: Foundational (Blocking Prerequisites)
+**Purpose:** Core infrastructure that MUST be complete before ANY user story can be implemented
 
-## Phase 3: User Story 1 - Consultar Valor Comisión Recinto
+### Existing entities for Spec 07
+- [x] T004 Entidad ComisionRecinto.java (ya existe)
+- [x] T005 Entidad Recinto.java (ya existe)
+- [x] T006 Puerto ComisionRecintoRepository.java (ya existe)
+- [x] T007 Puerto RecintoRepository.java (ya existe)
+
+**Checkpoint**: Foundation ready - user story implementation can now begin
+
+---
+
+## Phase 3: User Story 1 - Consultar valor comisión recinto (Priority: P1)
 **Goal:** Permitir al administrador de recinto consultar el valor de la comisión asociada al recinto.
 
-**Independent Test:** Consultar un recinto que tenga una comisión configurada previamente y validar que el sistema muestre correctamente el porcentaje o valor de comisión asociado.
+**Independent Test**: Consultar un recinto que tenga una comisión configurada previamente y validar que el sistema muestre correctamente el porcentaje o valor de comisión asociado.
 
 ### Tests for User Story 1
-- [ ] T010 Unit tests para ConsultarValorComisionRecintoUseCase
-- [ ] T011 Integration tests para endpoint
+- [ ] T008 [P] [US1] Unit test para ConsultarValorComisionRecintoUseCase
+- [ ] T009 [P] [US1] Integration test para endpoint
 
 ### Implementation for User Story 1
-- [ ] T012 [US1] Crear Request/Response en infrastructure/adapter/input/rest/
-- [ ] T013 [US1] Implementar ConsultarValorComisionRecintoUseCase (retorna ComisionRecintoDto)
-- [ ] T014 [US1] Implementar ValorComisionRecintoController (GET endpoint)
-- [ ] T015 [US1] Implementar ValorComisionRecintoMapper (Application DTO → Response DTO)
-- [ ] T016 [US1] Integrar manejo de errores
-- [ ] T017 [US1] Tests unitarios
+- [ ] T010 [US1] Crear Request/Response en infrastructure/adapter/input/rest/
+- [ ] T011 [US1] Implementar ConsultarValorComisionRecintoUseCase (retorna ComisionRecintoDto)
+- [ ] T012 [US1] Implementar ValorComisionRecintoController (GET endpoint)
+- [ ] T013 [US1] Implementar ValorComisionRecintoMapper (Application DTO → Response DTO)
+- [ ] T014 [US1] Integrar manejo de errores
+- [ ] T015 [US1] Tests unitarios
 
-## Phase 4: User Story 2 - Recinto sin comisión registrada
+**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
+
+---
+
+## Phase 4: User Story 2 - Recinto sin comisión registrada (Priority: P2)
 **Goal:** Manejar el caso cuando se consulta la comisión de un recinto que no tiene comisión registrada.
 
-**Independent Test:** Consultar la comisión de un recinto sin configurar y validar que el sistema informa que no tiene comisión registrada.
+**Independent Test**: Dado que existe un recinto registrado en el sistema. Cuando el administrador consulta la comisión del recinto y no existe una comisión configurada, entonces el sistema informa que el recinto no tiene una comisión registrada.
 
 ### Tests for User Story 2
-- [ ] T018 Unit tests para caso sin comisión
-- [ ] T019 Integration tests para error controlado
+- [ ] T016 [P] [US2] Unit test para caso sin comisión
+- [ ] T017 [P] [US2] Integration test para error controlado
 
 ### Implementation for User Story 2
-- [ ] T020 [US2] Actualizar Use Case para manejar caso sin comisión
-- [ ] T021 [US2] Actualizar Response para incluir mensaje de "sin comisión"
-- [ ] T022 [US2] Tests unitarios
+- [ ] T018 [US2] Actualizar Use Case para manejar caso sin comisión
+- [ ] T019 [US2] Actualizar Response para incluir mensaje de "sin comisión"
+- [ ] T020 [US2] Tests unitarios
 
-## Phase 5: Polish & Cross-Cutting Concerns
-**Purpose:** Improvements
-- [ ] T023 OpenAPI/Swagger documentation
-- [ ] T024 Circuit Breaker (Resilience4j)
-- [ ] T025 Tests de concurrencia
-- [ ] T026 Validaciones más estrictas
-- [ ] T027 Code cleanup
+**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
+
+---
+
+## Phase 5: User Story 3 - Recinto no existe (Priority: P3)
+**Goal:** Manejar el caso cuando se intenta consultar la comisión de un recinto que no existe.
+
+**Independent Test**: Dado que el recinto no existe, el sistema debe mostrar un mensaje de error indicando que el recinto no está registrado.
+
+### Tests for User Story 3
+- [ ] T021 [P] [US3] Unit test para recinto inexistente
+- [ ] T022 [P] [US3] Integration test para error 404
+
+### Implementation for User Story 3
+- [ ] T023 [US3] Validar existencia de recinto antes de consultar
+- [ ] T024 [US3] Retornar error controlado (404)
+- [ ] T025 [US3] Tests unitarios
+
+**Checkpoint**: All user stories should now be independently functional
+
+---
+
+## Phase N: Polish & Cross-Cutting Concerns
+**Purpose:** Improvements that affect multiple user stories
+- [ ] T026 OpenAPI/Swagger documentation
+- [ ] T027 Circuit Breaker (Resilience4j)
+- [ ] T028 Tests de concurrencia
+- [ ] T029 Validaciones más estrictas
+- [ ] T030 Code cleanup
 
 ---
 
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
-- **Setup:** Listo (proyecto base)
-- **Foundational:** Listo (entidades y puertos ya existen)
-- **User Stories:** Depende de Foundational
-- **Polish:** Depende de User Stories
+- **Setup (Phase 1)**: No dependencies - can start immediately
+- **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
+- **User Stories (Phase 3+)**: All depend on Foundational phase completion
+  - User stories can then proceed in parallel (if staffed)
+  - Or sequentially in priority order (P1 → P2 → P3)
+- **Polish (Final Phase)**: Depends on all desired user stories being complete
+
+### User Story Dependencies
+- **User Story 1 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories
+- **User Story 2 (P2)**: Can start after Foundational (Phase 2) - May integrate with US1 but should be independently testable
+- **User Story 3 (P3)**: Can start after Foundational (Phase 2) - May integrate with US1/US2 but should be independently testable
 
 ### Within Each User Story
-1. Entidades & Enums antes de repositorios (ya completado)
-2. Interfaces de repositorio antes de implementaciones (ya completado)
-3. Lógica de Use Case antes de Controller
-4. Mappers después de Use Cases
-5. Tests después de implementación
+- Models before services
+- Services before endpoints
+- Core implementation before integration
+- Story complete before moving to next priority
+- Tests after implementation
 
 ---
 
 ## Notes
-- `[P]` = Prioridad/Paralelizable, `[US1]` = Trazabilidad a Historia de Usuario 1
+- [Story] label maps task to specific user story for traceability
+- Each user story should be independently completable and testable
+- Verify tests pass
+- Commit after each task or logical group
+- Stop at any checkpoint to validate story independently
+- Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
 - Los Use Cases retornan Application DTOs (de `infrastructure/adapter/output/external/dto/`)
 - Los Controllers usan Mappers para convertir: Application DTO → Response DTO
 - Request DTOs están en `infrastructure/adapter/input/rest/request/`
 - Response DTOs están en `infrastructure/adapter/input/rest/response/`
 - ComisionRecintoDto ya existe en `infrastructure/adapter/output/external/dto/`
-- RegistrarComisionRecintoUseCase ya existe y puede reutilizarse para consulta
 
 ---
 
@@ -168,9 +209,9 @@ src/
 ```
 Cliente → ValorComisionRecintoController → ConsultarValorComisionRecintoUseCase → Domain → Infrastructure
                                                                              ↓
-                                                            ComisionRecintoDto (output/external/dto)
+                                                    ComisionRecintoDto (output/external/dto)
                                                                                         ↓
-                                                            Mapper: ComisionRecintoDto → ConsultarValorComisionRecintoResponse
+                                                    Mapper: ComisionRecintoDto → ConsultarValorComisionRecintoResponse
                                                                                         ↓
 Cliente ← ConsultarValorComisionRecintoResponse ← ValorComisionRecintoController
 ```

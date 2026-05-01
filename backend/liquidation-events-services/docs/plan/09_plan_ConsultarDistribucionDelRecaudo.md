@@ -3,7 +3,7 @@
 **Spec:** `09_ConsultarDistribucionDelRecaudo.md`
 
 ## Summary
-Implementar un caso de uso y endpoint que permita al administrador financiero consultar la distribución del recaudo generado por un evento para validar que la liquidación se haya ejecutado correctamente según el modelo de negocio configurado. Se debe mostrar el detalle de montos distribuidos al promotor, comisión de plataforma, y estado de la liquidación.
+Implementar un caso de uso y endpoint que permita al administrador financiero consultar la distribución del recaudo generado por un evento para validar que la liquidación se haya ejecutado correctamente según el modelo de negocio configurado.
 
 ## Technical Context
 - **Language/Version:** Java 21 LTS
@@ -80,93 +80,119 @@ src/
 - Infrastructure: Adaptadores de entrada (REST), salida (DTOs), y mappers
 - Shared: Errores comunes
 
-## Phase 1: Setup
+## Phase 1: Setup (Shared Infrastructure)
 **Purpose:** Project initialization
 - [x] T001 Estructura de directorios (ya existe del proyecto base)
 - [x] T002 Proyecto Java 21 con Spring Boot 4.0.5 (ya existe del proyecto base)
 - [x] T003 Dependencias Maven (ya existe del proyecto base)
 
-## Phase 2: Foundational
+## Phase 2: Foundational (Blocking Prerequisites)
 **Purpose:** Core infrastructure (depende de Spec 08)
-- [x] T004 Infraestructura de errores (ya existe del Spec 01)
-- [x] T005 Configuraciones base (ya existe del proyecto)
-- [ ] T006 Entidad DistribucionRecaudo.java (de Spec 08)
-- [ ] T007 Puerto DistribucionRecaudoRepository.java (de Spec 08)
 
-## Phase 3: User Story 1 - Consultar Distribución del Recaudo de Evento Liquidado
+### Existing entities from Spec 08
+- [ ] T004 Entidad DistribucionRecaudo.java (de Spec 08)
+- [ ] T005 Puerto DistribucionRecaudoRepository.java (de Spec 08)
+
+**Checkpoint**: Foundation ready - user story implementation can now begin
+
+---
+
+## Phase 3: User Story 1 - Consultar Distribución de Evento Liquidado (Priority: P1)
 **Goal:** Permitir al administrador financiero consultar la distribución del recaudo de un evento en estado "Liquidado".
 
-**Independent Test:** Dado que un evento se encuentra en estado "Liquidado", cuando el administrador financiero consulta la distribución del recaudo, el sistema muestra el detalle de los montos distribuidos al promotor y comisión de plataforma.
+**Independent Test**: Dado que un evento se encuentra en estado "Liquidado", cuando el administrador financiero consulta la distribución del recaudo del evento, entonces el sistema muestra el detalle de los montos distribuidos al promotor y comisión de plataforma.
 
 ### Tests for User Story 1
-- [ ] T008 Unit tests para ConsultarDistribucionRecaudoUseCase
-- [ ] T009 Integration tests para endpoint
+- [ ] T006 [P] [US1] Unit test para ConsultarDistribucionRecaudoUseCase
+- [ ] T007 [P] [US1] Integration test para endpoint
 
 ### Implementation for User Story 1
-- [ ] T010 [US1] Crear Request/Response en infrastructure/adapter/input/rest/
-- [ ] T011 [US1] Implementar ConsultarDistribucionRecaudoUseCase (retorna DistribucionRecaudoDto)
-- [ ] T012 [US1] Implementar ConsultarDistribucionController (GET endpoint)
-- [ ] T013 [US1] Implementar ConsultarDistribucionMapper (Application DTO → Response DTO)
-- [ ] T014 [US1] Integrar manejo de errores
-- [ ] T015 [US1] Tests unitarios
+- [ ] T008 [US1] Crear Request/Response en infrastructure/adapter/input/rest/
+- [ ] T009 [US1] Implementar ConsultarDistribucionRecaudoUseCase (retorna DistribucionRecaudoDto)
+- [ ] T010 [US1] Implementar ConsultarDistribucionController (GET endpoint)
+- [ ] T011 [US1] Implementar ConsultarDistribucionMapper (Application DTO → Response DTO)
+- [ ] T012 [US1] Integrar manejo de errores
+- [ ] T013 [US1] Tests unitarios
 
-## Phase 4: User Story 2 - Consultar Distribución de Evento No Liquidado
+**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
+
+---
+
+## Phase 4: User Story 2 - Consultar Distribución de Evento No Liquidado (Priority: P2)
 **Goal:** Manejar el caso cuando se intenta consultar la distribución de un evento que no ha sido liquidado.
 
-**Independent Test:** Dado que un evento no ha sido liquidado, cuando el administrador financiero intenta consultar la distribución del recaudo, el sistema muestra un mensaje indicando que el evento aún no tiene liquidación disponible.
+**Independent Test**: Dado que un evento no ha sido liquidado, cuando el administrador financiero intenta consultar la distribución del recaudo, entonces el sistema muestra un mensaje indicando que el evento aún no tiene liquidación disponible.
 
 ### Tests for User Story 2
-- [ ] T016 Unit tests para caso no liquidado
-- [ ] T017 Integration tests para error controlado
+- [ ] T014 [P] [US2] Unit test para caso no liquidado
+- [ ] T015 [P] [US2] Integration test para error controlado
 
 ### Implementation for User Story 2
-- [ ] T018 [US2] Actualizar Use Case para validar estado "Liquidado"
-- [ ] T019 [US2] Retornar mensaje de "sin liquidación disponible"
-- [ ] T020 [US2] Tests unitarios
+- [ ] T016 [US2] Actualizar Use Case para validar estado "Liquidado"
+- [ ] T017 [US2] Retornar mensaje de "sin liquidación disponible"
+- [ ] T018 [US2] Tests unitarios
+
+**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
+
+---
 
 ## Phase 5: Edge Cases
 **Purpose:** Manejo de casos especiales
 
 ### Tests for Edge Cases
-- [ ] T021 Unit tests: Evento no existe (error 404)
-- [ ] T022 Unit tests: Inconsistencias en montos calculados (bloquear consulta)
-- [ ] T023 Unit tests: Montos no modificables después de consultados
+- [ ] T019 Unit tests: Evento no existe (error 404)
+- [ ] T020 Unit tests: Inconsistencias en montos calculados (bloquear consulta)
+- [ ] T021 Unit tests: Montos no modificables después de consultados
 
 ### Implementation for Edge Cases
-- [ ] T024 [EC] Validar existencia de evento
-- [ ] T025 [EC] Validar consistencia de montos
-- [ ] T026 [EC] Bloquear modificaciones posteriores
+- [ ] T022 Validar existencia de evento
+- [ ] T023 Validar consistencia de montos
+- [ ] T024 Bloquear modificaciones posteriores
 
-## Phase 6: Polish & Cross-Cutting Concerns
-**Purpose:** Improvements
-- [ ] T027 OpenAPI/Swagger documentation
-- [ ] T028 Circuit Breaker (Resilience4j)
-- [ ] T029 Tests de concurrencia
-- [ ] T030 Validaciones más estrictas
-- [ ] T031 Code cleanup
+**Checkpoint**: All user stories should now be independently functional
+
+---
+
+## Phase N: Polish & Cross-Cutting Concerns
+**Purpose:** Improvements that affect multiple user stories
+- [ ] T025 OpenAPI/Swagger documentation
+- [ ] T026 Circuit Breaker (Resilience4j)
+- [ ] T027 Tests de concurrencia
+- [ ] T028 Validaciones más estrictas
+- [ ] T029 Code cleanup
 
 ---
 
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
-- **Setup:** Listo (proyecto base)
-- **Foundational:** Depende de Spec 08 (DistribucionRecaudo entity)
-- **User Stories:** Depende de Foundational
-- **Edge Cases:** Depende de User Stories
-- **Polish:** Depende de todo lo anterior
+- **Setup (Phase 1)**: No dependencies - can start immediately
+- **Foundational (Phase 2)**: Depends on Spec 08 (DistribucionRecaudo entity)
+- **User Stories (Phase 3+)**: All depend on Foundational phase completion
+- **Edge Cases**: Depends on User Stories
+- **Polish (Final Phase)**: Depends on all desired user stories being complete
+
+### User Story Dependencies
+- **User Story 1 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories
+- **User Story 2 (P2)**: Can start after Foundational (Phase 2) - May integrate with US1 but should be independently testable
+- **Edge Cases**: Depend on User Stories
 
 ### Within Each User Story
-1. Entidades antes de repositorios (de Spec 08)
-2. Interfaces de repositorio antes de implementaciones
-3. Lógica de Use Case antes de Controller
-4. Mappers después de Use Cases
-5. Tests después de implementación
+- Models before services (de Spec 08)
+- Services before endpoints
+- Core implementation before integration
+- Story complete before moving to next priority
+- Tests after implementation
 
 ---
 
 ## Notes
-- `[P]` = Prioridad/Paralelizable, `[US1]` = Trazabilidad a Historia de Usuario 1
+- [Story] label maps task to specific user story for traceability
+- Each user story should be independently completable and testable
+- Verify tests pass
+- Commit after each task or logical group
+- Stop at any checkpoint to validate story independently
+- Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
 - Los Use Cases retornan Application DTOs (de `infrastructure/adapter/output/external/dto/`)
 - Los Controllers usan Mappers para convertir: Application DTO → Response DTO
 - Request DTOs están en `infrastructure/adapter/input/rest/request/`
@@ -181,11 +207,11 @@ src/
 
 ```
 Cliente → ConsultarDistribucionController → ConsultarDistribucionRecaudoUseCase → Domain → Infrastructure
-                                                                                         ↓
-                                                                DistribucionRecaudoDto (output/external/dto)
-                                                                                                    ↓
-                                                                Mapper: DistribucionRecaudoDto → ConsultarDistribucionResponse
-                                                                                                    ↓
+                                                                             ↓
+                                                    DistribucionRecaudoDto (output/external/dto)
+                                                                                        ↓
+                                                    Mapper: DistribucionRecaudoDto → ConsultarDistribucionResponse
+                                                                                        ↓
 Cliente ← ConsultarDistribucionResponse ← ConsultarDistribucionController
 ```
 
