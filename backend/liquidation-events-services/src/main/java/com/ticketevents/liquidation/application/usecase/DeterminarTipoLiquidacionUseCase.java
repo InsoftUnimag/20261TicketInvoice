@@ -1,6 +1,6 @@
 package com.ticketevents.liquidation.application.usecase;
 
-import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.DeterminarTipoLiquidacionResponse;
+import com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.ConfiguracionLiquidacionDto;
 import com.ticketevents.liquidation.domain.entities.ConfiguracionLiquidacion;
 import com.ticketevents.liquidation.domain.entities.TipoLiquidacion;
 import com.ticketevents.liquidation.domain.repositories.ConfiguracionLiquidacionRepository;
@@ -24,13 +24,13 @@ public class DeterminarTipoLiquidacionUseCase {
     private final ConfiguracionLiquidacionMapper mapper;
 
     public DeterminarTipoLiquidacionUseCase(ConfiguracionLiquidacionRepository repository, 
-                                            ConfiguracionLiquidacionMapper mapper) {
+                                             ConfiguracionLiquidacionMapper mapper) {
         this.repository = repository;
         this.mapper = mapper;
     }
 
-    public DeterminarTipoLiquidacionResponse execute(Long eventoId, TipoLiquidacion tipoLiquidacion, 
-                                                      BigDecimal valor, BigDecimal porcentaje) {
+    public ConfiguracionLiquidacionDto execute(Long eventoId, TipoLiquidacion tipoLiquidacion, 
+                                                           BigDecimal valor, BigDecimal porcentaje) {
         log.info("Iniciando configuracion de tipo de liquidacion para evento: {}", eventoId);
 
         if (eventoId == null) {
@@ -76,14 +76,14 @@ public class DeterminarTipoLiquidacionUseCase {
             guardada = resultado.orElseThrow(() -> {
                 log.error("Error al guardar configuracion para evento {}", eventoId);
                 return new TechnicalException(ErrorCode.INVALID_REQUEST, 
-                        "Error al guardar la configuracion de liquidacion");
+                        "Error al guardar la configuración de liquidación");
             });
         } catch (Exception e) {
             log.error("Error al guardar configuracion para evento {}: {}", eventoId, e.getMessage());
             throw new TechnicalException(ErrorCode.EXTERNAL_SERVICE_UNAVAILABLE, e);
         }
 
-        DeterminarTipoLiquidacionResponse response = mapper.toResponse(guardada);
+        ConfiguracionLiquidacionDto response = mapper.toDto(guardada);
 
         log.info("Tipo de liquidacion configurado exitosamente para evento: {} - Tipo: {}", 
                 eventoId, tipoLiquidacion);

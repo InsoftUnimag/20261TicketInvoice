@@ -1,6 +1,6 @@
 package com.ticketevents.liquidation.application.usecase;
 
-import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.ConsultarResumenVentasResponse;
+import com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.EventSnapshotDto;
 import com.ticketevents.liquidation.domain.entities.ResumenVentasEvento;
 import com.ticketevents.liquidation.domain.repositories.EventSnapshotRepository;
 import com.ticketevents.liquidation.infrastructure.mappers.ResumenVentasMapper;
@@ -24,7 +24,7 @@ public class ConsultarResumenVentasUseCase {
         this.mapper = mapper;
     }
 
-    public ConsultarResumenVentasResponse execute(Long eventoId) {
+    public EventSnapshotDto execute(Long eventoId) {
         log.info("Iniciando consulta de resumen de ventas para evento: {}", eventoId);
 
         if (eventoId == null) {
@@ -57,10 +57,8 @@ public class ConsultarResumenVentasUseCase {
                     "El evento aún no ha sido cerrado. Estado actual: " + estadoEvento);
         }
 
-        ConsultarResumenVentasResponse response = mapper.toResponse(snapshot);
-        
         log.info("Resumen de ventas obtenido exitosamente para evento: {}", eventoId);
-        return response;
+        return mapper.toDto(snapshot);
     }
 
     private boolean esEstadoCerrado(String estado) {

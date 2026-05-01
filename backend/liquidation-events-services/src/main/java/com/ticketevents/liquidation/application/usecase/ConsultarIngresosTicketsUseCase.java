@@ -1,6 +1,6 @@
 package com.ticketevents.liquidation.application.usecase;
 
-import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.ConsultarIngresosResponse;
+import com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.IngresosTicketsDto;
 import com.ticketevents.liquidation.domain.entities.EstadoFinanciero;
 import com.ticketevents.liquidation.domain.entities.IngresosEvento;
 import com.ticketevents.liquidation.domain.repositories.IngresosConsultaRepository;
@@ -27,7 +27,7 @@ public class ConsultarIngresosTicketsUseCase {
         this.mapper = mapper;
     }
 
-    public ConsultarIngresosResponse execute(Long eventoId) {
+    public IngresosTicketsDto execute(Long eventoId) {
         log.info("Iniciando consulta de ingresos de tickets para evento: {}", eventoId);
 
         if (eventoId == null) {
@@ -68,9 +68,9 @@ public class ConsultarIngresosTicketsUseCase {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, e.getMessage());
         }
 
-        ConsultarIngresosResponse response = mapper.toResponse(ingresos);
+        IngresosTicketsDto dto = mapper.toDto(ingresos);
 
         log.info("Ingresos de tickets obtenidos exitosamente para evento: {}", eventoId);
-        return response;
+        return dto;
     }
 }

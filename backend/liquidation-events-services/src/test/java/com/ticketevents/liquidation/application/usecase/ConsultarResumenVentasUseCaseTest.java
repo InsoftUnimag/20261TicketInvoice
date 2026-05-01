@@ -1,6 +1,6 @@
 package com.ticketevents.liquidation.application.usecase;
 
-import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.ConsultarResumenVentasResponse;
+import com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.EventSnapshotDto;
 import com.ticketevents.liquidation.domain.entities.CondicionLiquidacion;
 import com.ticketevents.liquidation.domain.entities.ResumenVentasEvento;
 import com.ticketevents.liquidation.domain.repositories.EventSnapshotRepository;
@@ -39,21 +39,21 @@ class ConsultarResumenVentasUseCaseTest {
         snapshot.setNombreEvento("Concierto Rock 2026");
         snapshot.setEstadoEvento(estado);
         snapshot.setTotalRecaudoBruto(new BigDecimal("62500.00"));
-        
+
         Map<CondicionLiquidacion, Integer> ticketsPorCondicion = new HashMap<>();
         ticketsPorCondicion.put(CondicionLiquidacion.VALIDADO, 100);
         ticketsPorCondicion.put(CondicionLiquidacion.VENDIDO, 30);
         ticketsPorCondicion.put(CondicionLiquidacion.CANCELADO, 5);
         ticketsPorCondicion.put(CondicionLiquidacion.CORTESIA, 10);
         snapshot.setTicketsPorCondicion(ticketsPorCondicion);
-        
+
         Map<CondicionLiquidacion, BigDecimal> recaudoPorCondicion = new HashMap<>();
         recaudoPorCondicion.put(CondicionLiquidacion.VALIDADO, new BigDecimal("50000.00"));
         recaudoPorCondicion.put(CondicionLiquidacion.VENDIDO, new BigDecimal("15000.00"));
         recaudoPorCondicion.put(CondicionLiquidacion.CANCELADO, new BigDecimal("-2500.00"));
         recaudoPorCondicion.put(CondicionLiquidacion.CORTESIA, BigDecimal.ZERO);
         snapshot.setRecaudoPorCondicion(recaudoPorCondicion);
-        
+
         return snapshot;
     }
 
@@ -61,34 +61,35 @@ class ConsultarResumenVentasUseCaseTest {
     void execute_conEventoCerrado_retornaResumenCorrectamente() {
         Long eventoId = 1L;
         ResumenVentasEvento snapshot = createSnapshot(eventoId, "CERRADO");
-        
-        ConsultarResumenVentasResponse responseMock = new ConsultarResumenVentasResponse();
-        responseMock.setEventoId(eventoId);
-        responseMock.setEstadoEvento("CERRADO");
-        responseMock.setTotalTicketsVendidos(145);
-        responseMock.setTotalRecaudoBruto(new BigDecimal("62500.00"));
-        
+
+        EventSnapshotDto dtoMock = new EventSnapshotDto();
+        dtoMock.setIdEvento(eventoId);
+        dtoMock.setNombreEvento("Concierto Rock 2026");
+        dtoMock.setEstadoEvento("CERRADO");
+        dtoMock.setTotalTicketsVendidos(145);
+        dtoMock.setTotalRecaudoBruto(new BigDecimal("62500.00"));
+
         when(eventSnapshotRepository.getSnapshot(eventoId)).thenReturn(snapshot);
-        when(mapper.toResponse(snapshot)).thenReturn(responseMock);
-        
-        ConsultarResumenVentasResponse response = useCase.execute(eventoId);
-        
+        when(mapper.toDto(snapshot)).thenReturn(dtoMock);
+
+        EventSnapshotDto response = useCase.execute(eventoId);
+
         assertNotNull(response);
-        assertEquals(eventoId, response.getEventoId());
+        assertEquals(eventoId, response.getIdEvento());
         assertEquals("CERRADO", response.getEstadoEvento());
-        
+
         verify(eventSnapshotRepository).getSnapshot(eventoId);
     }
 
     @Test
     void execute_conEventoNoEncontrado_lanzaExcepcion() {
         Long eventoId = 999L;
-        
+
         when(eventSnapshotRepository.getSnapshot(eventoId)).thenReturn(null);
-        
-        BusinessException exception = assertThrows(BusinessException.class, 
+
+        BusinessException exception = assertThrows(BusinessException.class,
             () -> useCase.execute(eventoId));
-        
+
         assertEquals(ErrorCode.EVENT_NOT_FOUND, exception.getErrorCode());
     }
 
@@ -96,12 +97,12 @@ class ConsultarResumenVentasUseCaseTest {
     void execute_conEventoNoCerrado_lanzaExcepcion() {
         Long eventoId = 1L;
         ResumenVentasEvento snapshot = createSnapshot(eventoId, "EN_CURSO");
-        
+
         when(eventSnapshotRepository.getSnapshot(eventoId)).thenReturn(snapshot);
-        
-        BusinessException exception = assertThrows(BusinessException.class, 
+
+        BusinessException exception = assertThrows(BusinessException.class,
             () -> useCase.execute(eventoId));
-        
+
         assertEquals(ErrorCode.EVENT_NOT_CLOSED, exception.getErrorCode());
     }
 
@@ -109,33 +110,33 @@ class ConsultarResumenVentasUseCaseTest {
     void execute_conEventoProgramado_lanzaExcepcion() {
         Long eventoId = 1L;
         ResumenVentasEvento snapshot = createSnapshot(eventoId, "PROGRAMADO");
-        
+
         when(eventSnapshotRepository.getSnapshot(eventoId)).thenReturn(snapshot);
-        
-        BusinessException exception = assertThrows(BusinessException.class, 
+
+        BusinessException exception = assertThrows(BusinessException.class,
             () -> useCase.execute(eventoId));
-        
+
         assertEquals(ErrorCode.EVENT_NOT_CLOSED, exception.getErrorCode());
     }
 
     @Test
     void execute_conErrorDeServicioExterno_lanzaTechnicalException() {
         Long eventoId = 1L;
-        
+
         when(eventSnapshotRepository.getSnapshot(eventoId))
             .thenThrow(new RuntimeException("Connection refused"));
-        
-        TechnicalException exception = assertThrows(TechnicalException.class, 
+
+        TechnicalException exception = assertThrows(TechnicalException.class,
             () -> useCase.execute(eventoId));
-        
+
         assertEquals(ErrorCode.EXTERNAL_SERVICE_UNAVAILABLE, exception.getErrorCode());
     }
 
     @Test
     void execute_conEventoIdNulo_lanzaExcepcion() {
-        BusinessException exception = assertThrows(BusinessException.class, 
+        BusinessException exception = assertThrows(BusinessException.class,
             () -> useCase.execute(null));
-        
+
         assertEquals(ErrorCode.INVALID_REQUEST, exception.getErrorCode());
     }
 }

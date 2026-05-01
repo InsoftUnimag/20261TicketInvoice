@@ -1,6 +1,6 @@
 package com.ticketevents.liquidation.application.usecase;
 
-import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.ConsultarRecintoResponse;
+import com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.RecintoDto;
 import com.ticketevents.liquidation.domain.entities.Recinto;
 import com.ticketevents.liquidation.domain.entities.TipoRecinto;
 import com.ticketevents.liquidation.domain.repositories.RecintoRepository;
@@ -15,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -37,8 +36,8 @@ class ConsultarRecintoUseCaseTest {
         recinto.setId(id);
         recinto.setNombre(nombre);
         recinto.setTipoRecinto(tipo);
-        recinto.setTasaComision(tipo == TipoRecinto.ESTADIO 
-            ? new BigDecimal("0.15") 
+        recinto.setTasaComision(tipo == TipoRecinto.ESTADIO
+            ? new BigDecimal("0.15")
             : new BigDecimal("0.10"));
         recinto.setEstado("ACTIVO");
         return recinto;
@@ -48,21 +47,21 @@ class ConsultarRecintoUseCaseTest {
     void execute_conRecintoExistente_retornaRecintoCorrectamente() {
         Long recintoId = 1L;
         Recinto recinto = createRecinto(recintoId, "Estadio Nacional", TipoRecinto.ESTADIO);
-        ConsultarRecintoResponse responseMock = new ConsultarRecintoResponse();
-        responseMock.setId(recintoId);
-        responseMock.setNombre("Estadio Nacional");
-        responseMock.setTipoRecinto("ESTADIO");
-        
+
+        RecintoDto dtoMock = new RecintoDto(
+            recintoId, "Estadio Nacional", "ESTADIO",
+            new BigDecimal("0.15"), null, "ACTIVO");
+
         when(recintoRepository.findById(recintoId)).thenReturn(recinto);
-        when(mapper.toResponse(recinto)).thenReturn(responseMock);
-        
-        ConsultarRecintoResponse response = useCase.execute(recintoId);
-        
+        when(mapper.toDto(recinto)).thenReturn(dtoMock);
+
+        RecintoDto response = useCase.execute(recintoId);
+
         assertNotNull(response);
-        assertEquals(recintoId, response.getId());
-        assertEquals("Estadio Nacional", response.getNombre());
+        assertEquals(recintoId, response.getIdRecinto());
+        assertEquals("Estadio Nacional", response.getNombreRecinto());
         assertEquals("ESTADIO", response.getTipoRecinto());
-        
+
         verify(recintoRepository).findById(recintoId);
     }
 
@@ -70,16 +69,16 @@ class ConsultarRecintoUseCaseTest {
     void execute_conRecintoTeatro_retornaTasaCorrecta() {
         Long recintoId = 2L;
         Recinto recinto = createRecinto(recintoId, "Teatro Colón", TipoRecinto.TEATRO);
-        ConsultarRecintoResponse responseMock = new ConsultarRecintoResponse();
-        responseMock.setId(recintoId);
-        responseMock.setTipoRecinto("TEATRO");
-        responseMock.setTasaComision(new BigDecimal("0.10"));
-        
+
+        RecintoDto dtoMock = new RecintoDto(
+            recintoId, "Teatro Colón", "TEATRO",
+            new BigDecimal("0.10"), null, "ACTIVO");
+
         when(recintoRepository.findById(recintoId)).thenReturn(recinto);
-        when(mapper.toResponse(recinto)).thenReturn(responseMock);
-        
-        ConsultarRecintoResponse response = useCase.execute(recintoId);
-        
+        when(mapper.toDto(recinto)).thenReturn(dtoMock);
+
+        RecintoDto response = useCase.execute(recintoId);
+
         assertEquals("TEATRO", response.getTipoRecinto());
         assertEquals(new BigDecimal("0.10"), response.getTasaComision());
     }

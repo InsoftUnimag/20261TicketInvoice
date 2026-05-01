@@ -1,6 +1,6 @@
 package com.ticketevents.liquidation.application.usecase;
 
-import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.RegistrarComisionRecintoResponse;
+import com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.ComisionRecintoDto;
 import com.ticketevents.liquidation.domain.entities.ComisionRecinto;
 import com.ticketevents.liquidation.domain.entities.TipoComision;
 import com.ticketevents.liquidation.domain.repositories.ComisionRecintoRepository;
@@ -29,8 +29,8 @@ public class RegistrarComisionRecintoUseCase {
         this.mapper = mapper;
     }
 
-    public RegistrarComisionRecintoResponse execute(Long recintoId, TipoComision tipoComision, 
-                                                     BigDecimal valorComision) {
+    public ComisionRecintoDto execute(Long recintoId, TipoComision tipoComision,
+                                                      BigDecimal valorComision) {
         log.info("Iniciando registro de comision para recinto: {}", recintoId);
 
         if (recintoId == null) {
@@ -87,10 +87,10 @@ public class RegistrarComisionRecintoUseCase {
             throw new TechnicalException(ErrorCode.EXTERNAL_SERVICE_UNAVAILABLE, e);
         }
 
-        RegistrarComisionRecintoResponse response = mapper.toResponse(guardada);
+        ComisionRecintoDto dto = mapper.toDto(guardada);
 
-        log.info("Comision registrada exitosamente para recinto: {} - Tipo: {} - Valor: {}", 
+        log.info("Comision registrada exitosamente para recinto: {} - Tipo: {} - Valor: {}",
                 recintoId, tipoComision, valorComision);
-        return response;
+        return dto;
     }
 }

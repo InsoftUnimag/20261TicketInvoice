@@ -1,8 +1,8 @@
 package com.ticketevents.liquidation.application.usecase;
 
+import com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.RecintoDto;
 import com.ticketevents.liquidation.domain.entities.Recinto;
 import com.ticketevents.liquidation.domain.repositories.RecintoRepository;
-import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.ConsultarRecintoResponse;
 import com.ticketevents.liquidation.infrastructure.mappers.RecintoMapper;
 import com.ticketevents.liquidation.shared.errors.BusinessException;
 import com.ticketevents.liquidation.shared.errors.ErrorCode;
@@ -26,7 +26,7 @@ public class ConsultarRecintoUseCase {
         this.mapper = mapper;
     }
 
-    public ConsultarRecintoResponse execute(Long recintoId) {
+    public RecintoDto execute(Long recintoId) {
         log.info("Iniciando consulta de recinto: {}", recintoId);
 
         if (recintoId == null) {
@@ -52,7 +52,7 @@ public class ConsultarRecintoUseCase {
             throw new TechnicalException(ErrorCode.INVALID_REQUEST, e.getMessage());
         }
 
-        ConsultarRecintoResponse response = mapper.toResponse(recinto);
+        RecintoDto response = mapper.toDto(recinto);
         
         log.info("Recinto consultado exitosamente: {} - {} ({})", 
                 recintoId, recinto.getNombre(), recinto.getTipoRecinto());

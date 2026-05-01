@@ -1,6 +1,6 @@
 package com.ticketevents.liquidation.application.usecase;
 
-import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.RegistrarComisionRecintoResponse;
+import com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.ComisionRecintoDto;
 import com.ticketevents.liquidation.domain.entities.ComisionRecinto;
 import com.ticketevents.liquidation.domain.entities.TipoComision;
 import com.ticketevents.liquidation.domain.repositories.ComisionRecintoRepository;
@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -41,25 +42,22 @@ class RegistrarComisionRecintoUseCaseTest {
         Long recintoId = 1L;
         TipoComision tipo = TipoComision.PORCENTAJE;
         BigDecimal valor = new BigDecimal("0.12");
-        
+
         ComisionRecinto comision = createComision(recintoId, tipo, valor);
-        
-        RegistrarComisionRecintoResponse responseMock = new RegistrarComisionRecintoResponse();
-        responseMock.setRecintoId(recintoId);
-        responseMock.setTipoComision("PORCENTAJE");
-        responseMock.setValorComision(valor);
-        responseMock.setMensaje("Comision registrada exitosamente");
-        
+
+        ComisionRecintoDto dtoMock = new ComisionRecintoDto(
+            1L, recintoId, "PORCENTAJE", valor, LocalDateTime.now());
+
         when(repository.existeRecinto(recintoId)).thenReturn(true);
         when(repository.guardar(any(ComisionRecinto.class))).thenReturn(Optional.of(comision));
-        when(mapper.toResponse(comision)).thenReturn(responseMock);
-        
-        RegistrarComisionRecintoResponse response = useCase.execute(recintoId, tipo, valor);
-        
+        when(mapper.toDto(comision)).thenReturn(dtoMock);
+
+        ComisionRecintoDto response = useCase.execute(recintoId, tipo, valor);
+
         assertNotNull(response);
         assertEquals(recintoId, response.getRecintoId());
         assertEquals("PORCENTAJE", response.getTipoComision());
-        
+
         verify(repository).existeRecinto(recintoId);
         verify(repository).guardar(any(ComisionRecinto.class));
     }
@@ -69,20 +67,18 @@ class RegistrarComisionRecintoUseCaseTest {
         Long recintoId = 2L;
         TipoComision tipo = TipoComision.VALOR_FIJO;
         BigDecimal valor = new BigDecimal("5000.00");
-        
+
         ComisionRecinto comision = createComision(recintoId, tipo, valor);
-        
-        RegistrarComisionRecintoResponse responseMock = new RegistrarComisionRecintoResponse();
-        responseMock.setRecintoId(recintoId);
-        responseMock.setTipoComision("VALOR_FIJO");
-        responseMock.setValorComision(valor);
-        
+
+        ComisionRecintoDto dtoMock = new ComisionRecintoDto(
+            1L, recintoId, "VALOR_FIJO", valor, LocalDateTime.now());
+
         when(repository.existeRecinto(recintoId)).thenReturn(true);
         when(repository.guardar(any(ComisionRecinto.class))).thenReturn(Optional.of(comision));
-        when(mapper.toResponse(comision)).thenReturn(responseMock);
-        
-        RegistrarComisionRecintoResponse response = useCase.execute(recintoId, tipo, valor);
-        
+        when(mapper.toDto(comision)).thenReturn(dtoMock);
+
+        ComisionRecintoDto response = useCase.execute(recintoId, tipo, valor);
+
         assertNotNull(response);
         assertEquals("VALOR_FIJO", response.getTipoComision());
     }
