@@ -1,8 +1,11 @@
 package com.ticketevents.liquidation.infrastructure.interfaces.api;
 
 import com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.ComisionRecintoDto;
+import com.ticketevents.liquidation.application.usecase.ConsultarComisionRecintoResult;
+import com.ticketevents.liquidation.application.usecase.ConsultarComisionRecintoUseCase;
 import com.ticketevents.liquidation.application.usecase.RegistrarComisionRecintoUseCase;
 import com.ticketevents.liquidation.infrastructure.adapter.input.rest.request.RegistrarComisionRecintoRequest;
+import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.ComisionResponse;
 import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.RegistrarComisionRecintoResponse;
 import com.ticketevents.liquidation.infrastructure.mappers.ComisionRecintoMapper;
 import jakarta.validation.Valid;
@@ -12,8 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-
 @RestController
 @RequestMapping("/api/v1/recintos")
 public class ComisionRecintoController {
@@ -21,12 +22,30 @@ public class ComisionRecintoController {
     private static final Logger log = LoggerFactory.getLogger(ComisionRecintoController.class);
 
     private final RegistrarComisionRecintoUseCase registrarComisionRecintoUseCase;
+    private final ConsultarComisionRecintoUseCase consultarComisionRecintoUseCase;
     private final ComisionRecintoMapper mapper;
 
     public ComisionRecintoController(RegistrarComisionRecintoUseCase registrarComisionRecintoUseCase,
-                                   ComisionRecintoMapper mapper) {
+                                     ConsultarComisionRecintoUseCase consultarComisionRecintoUseCase,
+                                     ComisionRecintoMapper mapper) {
         this.registrarComisionRecintoUseCase = registrarComisionRecintoUseCase;
+        this.consultarComisionRecintoUseCase = consultarComisionRecintoUseCase;
         this.mapper = mapper;
+    }
+
+    @GetMapping("/{id}/comision")
+    public ResponseEntity<ComisionResponse> consultarComision(@PathVariable("id") Long recintoId) {
+        log.info("Solicitud de consulta de comision para recinto: {}", recintoId);
+
+        ConsultarComisionRecintoResult result = consultarComisionRecintoUseCase.ejecutar(recintoId);
+        ComisionResponse response = new ComisionResponse(
+                result.configurada(),
+                result.mensaje(),
+                result.tipoComision(),
+                result.valorComision()
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{id}/comision")
