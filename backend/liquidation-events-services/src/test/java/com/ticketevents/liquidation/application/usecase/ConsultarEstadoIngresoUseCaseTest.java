@@ -64,21 +64,19 @@ class ConsultarEstadoIngresoUseCaseTest {
         Long eventoId = 1L;
         List<RegistroIngreso> registros = crearRegistros(100, 30);
         
-        ConsultarEstadoIngresoResponse responseMock = new ConsultarEstadoIngresoResponse();
-        responseMock.setEventoId(eventoId);
-        responseMock.setNombreEvento("Concierto Rock 2026");
-        responseMock.setTotalTickets(130);
-        responseMock.setTotalCheckeados(100);
-        responseMock.setTotalNoAsistieron(30);
-        
+        com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.EstadoIngresoDto outputMock =
+            new com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.EstadoIngresoDto();
+        outputMock.setEventoId(eventoId);
+        outputMock.setNombreEvento("Concierto Rock 2026");
+
         when(accessControlRepository.getIngresosByEvento(eventoId)).thenReturn(registros);
-        when(mapper.toResponse(eq(eventoId), anyString(), eq(registros))).thenReturn(responseMock);
-        
-        ConsultarEstadoIngresoResponse response = useCase.execute(eventoId);
-        
+        when(mapper.toOutput(eq(eventoId), anyString(), eq(registros))).thenReturn(outputMock);
+
+        com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.EstadoIngresoDto response = useCase.execute(eventoId);
+
         assertNotNull(response);
         assertEquals(eventoId, response.getEventoId());
-        
+
         verify(accessControlRepository).getIngresosByEvento(eventoId);
     }
 

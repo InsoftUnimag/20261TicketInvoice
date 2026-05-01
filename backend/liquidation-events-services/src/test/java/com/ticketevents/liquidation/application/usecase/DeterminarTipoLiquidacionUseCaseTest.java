@@ -1,6 +1,6 @@
 package com.ticketevents.liquidation.application.usecase;
 
-import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.DeterminarTipoLiquidacionResponse;
+import com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.ConfiguracionLiquidacionDto;
 import com.ticketevents.liquidation.domain.entities.ConfiguracionLiquidacion;
 import com.ticketevents.liquidation.domain.entities.TipoLiquidacion;
 import com.ticketevents.liquidation.domain.repositories.ConfiguracionLiquidacionRepository;
@@ -42,25 +42,22 @@ class DeterminarTipoLiquidacionUseCaseTest {
         TipoLiquidacion tipo = TipoLiquidacion.TARIFA_PLANA;
         BigDecimal valor = new BigDecimal("5000.00");
         BigDecimal porcentaje = null;
-        
+
         ConfiguracionLiquidacion configuracion = createConfiguracion(eventoId, tipo);
-        
-        DeterminarTipoLiquidacionResponse responseMock = new DeterminarTipoLiquidacionResponse();
-        responseMock.setEventoId(eventoId);
-        responseMock.setTipoLiquidacion("TARIFA_PLANA");
-        responseMock.setValorComision(valor);
-        responseMock.setMensaje("Tipo de liquidacion configurado exitosamente");
-        
+
+        ConfiguracionLiquidacionDto dtoMock = new ConfiguracionLiquidacionDto(
+            1L, eventoId, "TARIFA_PLANA", valor, BigDecimal.ZERO);
+
         when(repository.existeEvento(eventoId)).thenReturn(true);
         when(repository.guardar(any(ConfiguracionLiquidacion.class))).thenReturn(Optional.of(configuracion));
-        when(mapper.toResponse(configuracion)).thenReturn(responseMock);
-        
-        DeterminarTipoLiquidacionResponse response = useCase.execute(eventoId, tipo, valor, porcentaje);
-        
+        when(mapper.toDto(configuracion)).thenReturn(dtoMock);
+
+        ConfiguracionLiquidacionDto response = useCase.execute(eventoId, tipo, valor, porcentaje);
+
         assertNotNull(response);
         assertEquals(eventoId, response.getEventoId());
         assertEquals("TARIFA_PLANA", response.getTipoLiquidacion());
-        
+
         verify(repository).existeEvento(eventoId);
         verify(repository).guardar(any(ConfiguracionLiquidacion.class));
     }
@@ -71,20 +68,18 @@ class DeterminarTipoLiquidacionUseCaseTest {
         TipoLiquidacion tipo = TipoLiquidacion.REPARTO_INGRESOS;
         BigDecimal valor = null;
         BigDecimal porcentaje = new BigDecimal("0.15");
-        
+
         ConfiguracionLiquidacion configuracion = createConfiguracion(eventoId, tipo);
-        
-        DeterminarTipoLiquidacionResponse responseMock = new DeterminarTipoLiquidacionResponse();
-        responseMock.setEventoId(eventoId);
-        responseMock.setTipoLiquidacion("REPARTO_INGRESOS");
-        responseMock.setPorcentaje(porcentaje);
-        
+
+        ConfiguracionLiquidacionDto dtoMock = new ConfiguracionLiquidacionDto(
+            1L, eventoId, "REPARTO_INGRESOS", null, porcentaje);
+
         when(repository.existeEvento(eventoId)).thenReturn(true);
         when(repository.guardar(any(ConfiguracionLiquidacion.class))).thenReturn(Optional.of(configuracion));
-        when(mapper.toResponse(configuracion)).thenReturn(responseMock);
-        
-        DeterminarTipoLiquidacionResponse response = useCase.execute(eventoId, tipo, valor, porcentaje);
-        
+        when(mapper.toDto(configuracion)).thenReturn(dtoMock);
+
+        ConfiguracionLiquidacionDto response = useCase.execute(eventoId, tipo, valor, porcentaje);
+
         assertNotNull(response);
         assertEquals("REPARTO_INGRESOS", response.getTipoLiquidacion());
     }
