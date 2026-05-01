@@ -1,6 +1,6 @@
 package com.ticketevents.liquidation.application.usecase;
 
-import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.ConsultarIngresosResponse;
+import com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.IngresosTicketsDto;
 import com.ticketevents.liquidation.domain.entities.EstadoFinanciero;
 import com.ticketevents.liquidation.domain.entities.IngresosEvento;
 import com.ticketevents.liquidation.domain.repositories.IngresosConsultaRepository;
@@ -15,7 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,34 +50,33 @@ class ConsultarIngresosTicketsUseCaseTest {
     @Test
     void execute_conEventoExistente_retornaIngresosCorrectamente() {
         Long eventoId = 1L;
-        IngresosEvento ingresos = createIngresos(eventoId, 3, 1, 1);
-        
-        ConsultarIngresosResponse responseMock = new ConsultarIngresosResponse();
-        responseMock.setEventoId(eventoId);
-        responseMock.setTotalTicketsVendidos(5);
-        responseMock.setTotalTicketsValidados(3);
-        responseMock.setTotalTicketsCancelados(1);
-        responseMock.setTotalCortesias(1);
-        responseMock.setTotalRecaudoBruto(new BigDecimal("1500.00"));
-        
+
+        IngresosTicketsDto dtoMock = new IngresosTicketsDto();
+        dtoMock.setEventoId(eventoId);
+        dtoMock.setTotalTicketsVendidos(5);
+        dtoMock.setTotalTicketsValidados(3);
+        dtoMock.setTotalTicketsCancelados(1);
+        dtoMock.setTotalCortesias(1);
+        dtoMock.setTotalRecaudoBruto(new BigDecimal("1500.00"));
+
         when(ingresosRepository.existeEvento(eventoId)).thenReturn(true);
-        
-        List<Object[]> ticketsList = new java.util.ArrayList<>();
+
+        List<Object[]> ticketsList = new ArrayList<>();
         ticketsList.add(new Object[]{EstadoFinanciero.VALIDADO, new BigDecimal("500.00")});
         ticketsList.add(new Object[]{EstadoFinanciero.VALIDADO, new BigDecimal("500.00")});
         ticketsList.add(new Object[]{EstadoFinanciero.VALIDADO, new BigDecimal("500.00")});
         ticketsList.add(new Object[]{EstadoFinanciero.CANCELADO, new BigDecimal("500.00")});
         ticketsList.add(new Object[]{EstadoFinanciero.CORTESIA, BigDecimal.ZERO});
-        
+
         when(ingresosRepository.obtenerTicketsAgrupados(eventoId)).thenReturn(ticketsList);
-        when(mapper.toResponse(any(IngresosEvento.class))).thenReturn(responseMock);
-        
-        ConsultarIngresosResponse response = useCase.execute(eventoId);
-        
-        assertNotNull(response);
-        assertEquals(eventoId, response.getEventoId());
-        assertEquals(5, response.getTotalTicketsVendidos());
-        
+        when(mapper.toDto(any(IngresosEvento.class))).thenReturn(dtoMock);
+
+        IngresosTicketsDto result = useCase.execute(eventoId);
+
+        assertNotNull(result);
+        assertEquals(eventoId, result.getEventoId());
+        assertEquals(5, result.getTotalTicketsVendidos());
+
         verify(ingresosRepository).existeEvento(eventoId);
         verify(ingresosRepository).obtenerTicketsAgrupados(eventoId);
     }
@@ -85,55 +84,55 @@ class ConsultarIngresosTicketsUseCaseTest {
     @Test
     void execute_conEventoNoEncontrado_lanzaExcepcion() {
         Long eventoId = 999L;
-        
+
         when(ingresosRepository.existeEvento(eventoId)).thenReturn(false);
-        
-        BusinessException exception = assertThrows(BusinessException.class, 
+
+        BusinessException exception = assertThrows(BusinessException.class,
             () -> useCase.execute(eventoId));
-        
+
         assertEquals(ErrorCode.EVENT_NOT_FOUND, exception.getErrorCode());
     }
 
     @Test
     void execute_conEventoIdNulo_lanzaExcepcion() {
-        BusinessException exception = assertThrows(BusinessException.class, 
+        BusinessException exception = assertThrows(BusinessException.class,
             () -> useCase.execute(null));
-        
+
         assertEquals(ErrorCode.INVALID_REQUEST, exception.getErrorCode());
     }
 
     @Test
     void execute_conErrorDeServicioExterno_lanzaTechnicalException() {
         Long eventoId = 1L;
-        
+
         when(ingresosRepository.existeEvento(eventoId))
             .thenThrow(new RuntimeException("Connection refused"));
-        
-        TechnicalException exception = assertThrows(TechnicalException.class, 
+
+        TechnicalException exception = assertThrows(TechnicalException.class,
             () -> useCase.execute(eventoId));
-        
+
         assertEquals(ErrorCode.EXTERNAL_SERVICE_UNAVAILABLE, exception.getErrorCode());
     }
 
     @Test
     void execute_conTicketsSinEstado_marcaInconsistencias() {
         Long eventoId = 3L;
-        
-        ConsultarIngresosResponse responseMock = new ConsultarIngresosResponse();
-        responseMock.setEventoId(eventoId);
-        responseMock.setTotalTicketsVendidos(1);
-        responseMock.setHasInconsistencies(true);
-        
-        List<Object[]> ticketsWithNull = new java.util.ArrayList<>();
+
+        IngresosTicketsDto dtoMock = new IngresosTicketsDto();
+        dtoMock.setEventoId(eventoId);
+        dtoMock.setTotalTicketsVendidos(1);
+        dtoMock.setHasInconsistencias(true);
+
+        List<Object[]> ticketsWithNull = new ArrayList<>();
         ticketsWithNull.add(new Object[]{null, new BigDecimal("1000.00")});
-        
+
         when(ingresosRepository.existeEvento(eventoId)).thenReturn(true);
         when(ingresosRepository.obtenerTicketsAgrupados(eventoId)).thenReturn(ticketsWithNull);
-        when(mapper.toResponse(any(IngresosEvento.class))).thenReturn(responseMock);
-        
-        ConsultarIngresosResponse response = useCase.execute(eventoId);
-        
-        assertNotNull(response);
-        assertTrue(response.isHasInconsistencies());
+        when(mapper.toDto(any(IngresosEvento.class))).thenReturn(dtoMock);
+
+        IngresosTicketsDto result = useCase.execute(eventoId);
+
+        assertNotNull(result);
+        assertTrue(result.isHasInconsistencias());
     }
 }
