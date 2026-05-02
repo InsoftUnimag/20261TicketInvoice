@@ -195,7 +195,7 @@ docker compose -f docker-compose.liquidacion.yml down
 docker compose -f docker-compose.liquidacion.yml down -v
 docker compose -f docker-compose.liquidacion.yml up --build
 ```
-# feature 5
+# feature 6
 # Ejecutar Docker (registrar comision de recinto)
 
 ## 1) Ir al modulo backend
