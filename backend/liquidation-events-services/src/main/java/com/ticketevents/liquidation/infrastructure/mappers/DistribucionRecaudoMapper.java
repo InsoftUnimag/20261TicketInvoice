@@ -23,6 +23,8 @@ public class DistribucionRecaudoMapper {
         dto.setDescuentoCortesia(distribucion.getDescuentoCortesia());
         dto.setEstado(distribucion.getEstado());
         dto.setFechaCalculo(distribucion.getFechaCalculo());
+        dto.setTotalPagoPromotor(distribucion.getTotalPagoPromotor());
+        dto.setFechaLiquidacion(distribucion.getFechaLiquidacion());
 
         return dto;
     }

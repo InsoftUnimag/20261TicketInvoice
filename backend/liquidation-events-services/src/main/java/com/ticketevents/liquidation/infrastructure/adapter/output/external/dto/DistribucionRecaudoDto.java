@@ -14,8 +14,10 @@ public class DistribucionRecaudoDto {
     private BigDecimal comisionPlataforma;
     private BigDecimal descuentoCancelados;
     private BigDecimal descuentoCortesia;
+    private BigDecimal totalPagoPromotor;
     private String estado;
     private LocalDateTime fechaCalculo;
+    private LocalDateTime fechaLiquidacion;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -37,6 +39,10 @@ public class DistribucionRecaudoDto {
     public void setDescuentoCortesia(BigDecimal descuentoCortesia) { this.descuentoCortesia = descuentoCortesia; }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+    public BigDecimal getTotalPagoPromotor() { return totalPagoPromotor; }
+    public void setTotalPagoPromotor(BigDecimal totalPagoPromotor) { this.totalPagoPromotor = totalPagoPromotor; }
+    public LocalDateTime getFechaLiquidacion() { return fechaLiquidacion; }
+    public void setFechaLiquidacion(LocalDateTime fechaLiquidacion) { this.fechaLiquidacion = fechaLiquidacion; }
     public LocalDateTime getFechaCalculo() { return fechaCalculo; }
     public void setFechaCalculo(LocalDateTime fechaCalculo) { this.fechaCalculo = fechaCalculo; }
 }

@@ -14,8 +14,10 @@ public class DistribucionRecaudo {
     private BigDecimal comisionPlataforma;
     private BigDecimal descuentoCancelados;
     private BigDecimal descuentoCortesia;
+    private BigDecimal totalPagoPromotor;
     private String estado;
     private LocalDateTime fechaCalculo;
+    private LocalDateTime fechaLiquidacion;
 
     public DistribucionRecaudo() {}
 
@@ -62,6 +64,15 @@ public class DistribucionRecaudo {
         this.totalBruto = BigDecimal.ZERO;
         this.totalNetoPreliminar = BigDecimal.ZERO;
         this.totalDistribuible = BigDecimal.ZERO;
+        this.totalPagoPromotor = BigDecimal.ZERO;
+    }
+
+    public void marcarLiquidado() {
+        this.estado = "LIQUIDADO";
+        this.fechaLiquidacion = LocalDateTime.now();
+        if (this.totalDistribuible != null) {
+            this.totalPagoPromotor = this.totalDistribuible;
+        }
     }
 
     public void validar() {
@@ -96,6 +107,10 @@ public class DistribucionRecaudo {
     public void setDescuentoCortesia(BigDecimal descuentoCortesia) { this.descuentoCortesia = descuentoCortesia; }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+    public BigDecimal getTotalPagoPromotor() { return totalPagoPromotor; }
+    public void setTotalPagoPromotor(BigDecimal totalPagoPromotor) { this.totalPagoPromotor = totalPagoPromotor; }
+    public LocalDateTime getFechaLiquidacion() { return fechaLiquidacion; }
+    public void setFechaLiquidacion(LocalDateTime fechaLiquidacion) { this.fechaLiquidacion = fechaLiquidacion; }
     public LocalDateTime getFechaCalculo() { return fechaCalculo; }
     public void setFechaCalculo(LocalDateTime fechaCalculo) { this.fechaCalculo = fechaCalculo; }
 }
