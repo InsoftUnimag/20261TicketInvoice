@@ -1,155 +1,65 @@
 # Implementation Plan: Consultar resumen de ventas del evento
-**Date:** 14/04/2026  
+**Date:** 01/05/2026  
 **Spec:** `Consultar_resumen_de_ventas_del_evento.md`
 
 ## Summary
-Implementar un caso de uso y endpoint que permita al módulo de liquidación consultar el resumen consolidado de ventas de un evento cerrado, consumiendo internamente el servicio externo `/eventos/{id}/snapshot` del módulo de gestión de recintos. Se aplicará Arquitectura Hexagonal, abstracción del cliente HTTP externo, validación explícita del estado del evento y manejo estructurado de errores para garantizar la trazabilidad financiera y el bloqueo de liquidación ante fallos (SC-001, SC-003).
+Implementar un caso de uso y endpoint de solo lectura para consultar el resumen consolidado de ventas de un evento. El sistema valida que el evento exista, que el snapshot sea consistente y que el estado del evento sea `CERRADO`.
 
 ## Technical Context
 - **Language/Version:** Java 21 LTS
-- **Primary Dependencies:** Spring Boot 4.0.5, Spring Web, Spring Data JPA, RestClient, JUnit 5, Mockito, Jackson
-- **Storage:** PostgreSQL (configurado pero no usado en Spec 01 - auditoría futura)
+- **Primary Dependencies:** Spring Boot 4.0.5, Spring Data JPA
+- **Storage:** PostgreSQL (configurado en el modulo, no obligatorio para el mock del flujo).
 - **Testing:** JUnit 5, Mockito
 - **Target Platform:** Backend Service (Linux/Containerized)
-- **Project Type:** Single Backend Service (Hexagonal Architecture)
-- **Performance Goals:** <1s p95 en llamadas externas, 100% de éxito para eventos cerrados (SC-001)
-- **Constraints:** Tolerancia a fallos del servicio externo, validación estricta de estado `CERRADO`, bloqueo explícito de liquidación si falla (SC-003)
-- **Scale/Scope:** Consultas on-demand por evento, picos de concurrencia durante ventanas de cierre/liquidación
+- **Project Type:** Single Backend Service (Clean/Hexagonal Architecture)
+- **Constraints:** Respuestas deterministas, bloqueo del flujo ante estado no cerrado o snapshot invalido.
 
-## Project Structure
+## Project Structure (implementado)
 
-### Documentation (this feature)
+`backend/liquidation-events-services/src/main/java/com/ticketevents/liquidation/`
 
-```
-docs/
-└── plan/
-    ├── plan-template.md
-    └── 01_Plan_ConsultarResumenDeVentas.md
-```
+- `domain/entities/ResumenVentasEvento.java`
+- `domain/repositories/EventSnapshotRepository.java`
+- `application/usecase/ConsultarResumenVentasUseCase.java`
+- `infrastructure/adapter/output/external/dto/EventSnapshotDto.java`
+- `infrastructure/external/MockEventSnapshotRepository.java`
+- `infrastructure/interfaces/api/ResumenVentasController.java`
+- `shared/errors/ErrorCode.java`
+- `shared/errors/BusinessException.java`
+- `shared/errors/TechnicalException.java`
 
-### Source Code (Hexagonal Architecture)
+## User Story 1 - Consultar resumen de ventas del evento (P1)
+**Goal:** Exponer endpoint para consultar resumen de ventas de un evento, validando estado `CERRADO`.
 
-```
-src/
-└── main/java/com/ticketevents/liquidation/
+**Endpoint implementado**
+- `GET /api/v1/eventos/{id}/resumen-ventas`
 
-├── domain/                              ← CAPA 1: DOMINIO
+**Comportamiento esperado**
+1. Evento existente y cerrado: `200 OK` con resumen de ventas.
+2. Evento inexistente: `404` por `BusinessException` con `ErrorCode.EVENT_NOT_FOUND`.
+3. Evento no cerrado: `409` por `BusinessException` con `ErrorCode.EVENT_NOT_CLOSED`.
 
-│   ├── entities/
-│   │   ├── Evento.java
-│   │   ├── Ticket.java
-│   │   ├── ResumenVentasEvento.java    (Entidad/Value Object según spec)
-│   │   ├── EstadoEvento.java           (enum)
-│   │   └── CondicionLiquidacion.java  (enum)
-│   └── repositories/
-│       └── EventSnapshotRepository.java  (Puerto/Port)
+## Notas de implementacion alineadas a codigo
+- El flujo consulta `EventSnapshotRepository.getSnapshot(...)`.
+- Se valida `snapshot.validar()` antes del mapeo.
+- Se valida estado de evento con `esEstadoCerrado(...)` en el use case.
+- El mapeo de salida se realiza con `ResumenVentasMapper`.
 
-├── application/                         ← CAPA 2: APLICACIÓN
+## Docker (agregado para ejecucion portable)
+Archivos:
+- `backend/liquidation-events-services/Dockerfile`
+- `backend/liquidation-events-services/docker-compose.resumen-ventas.yml`
+- `backend/liquidation-events-services/src/main/resources/application-docker-resumen.properties`
 
-│   └── usecase/
-│       └── ConsultarResumenVentasUseCase.java
-
-├── infrastructure/                    ← CAPA 3: INFRAESTRUCTURA
-
-│   └── adapter/
-│       ├── input/
-│       │   └── rest/
-│       │       ├── request/
-│       │       │   └── ConsultarResumenVentasRequest.java
-│       │       └── response/
-│       │           ├── ConsultarResumenVentasResponse.java
-│       │           └── ErrorResponse.java
-│       └── output/
-│           └── external/
-│               └── dto/
-│                   └── EventSnapshotDto.java   (DTO para API externa)
-│   ├── external/
-│   │   ├── EventSnapshotApiClient.java
-│   │   └── MockEventSnapshotRepository.java
-│   ├── interfaces/
-│   │   └── api/
-│   │       ├── ResumenVentasController.java
-│   │       └── GlobalExceptionHandler.java
-│   └── config/
-│       └── RestClientConfig.java
-
-└── shared/                             ← CAPA 4: COMPARTIDO
-
-    └── errors/
-        ├── ErrorCode.java
-        ├── BusinessException.java
-        └── TechnicalException.java
+Comando:
+```bash
+cd backend/liquidation-events-services
+docker compose -f docker-compose.resumen-ventas.yml up --build
 ```
 
-**Structure Decision**: Arquitectura Hexagonal con distribución de paquetes:
-- Domain: Entidades y puertos (interfaces)
-- Application: Casos de uso (UseCases)
-- Infrastructure: Adaptadores de entrada (REST), salida (API externa), y configuración
-- Shared: Errores comunes
-
-## Phase 1: Setup
-**Purpose:** Project initialization and basic structure
-- [x] T001 Crear estructura de directorios según Project Structure
-- [x] T002 Inicializar proyecto Java 21 con Spring Boot 4.0.5
-- [x] T003 Configurar dependencias Maven
-
-## Phase 2: Foundational
-**Purpose:** Core infrastructure
-- [x] T004 Configurar PostgreSQL (application.properties)
-- [x] T005 Implementar infraestructura de errores (shared/errors/)
-- [x] T006 Configurar RestClient
-- [x] T007 Crear entidades de dominio
-- [x] T008 Definir puerto EventSnapshotRepository
-- [ ] T009 Logging estructurado (pendiente)
-
-## Phase 3: User Story 1 - Consultar resumen de ventas
-**Goal:** Exponer capacidad para obtener el consolidado de ventas de un evento cerrado desde el servicio externo, validando estado y manejando fallos externos. Independent Test: Invocar GET /api/v1/eventos/{id}/resumen-ventas con un ID válido y estado CERRADO; validar respuesta JSON con conteos por condición y total recaudado. Validar errores 404 (evento inexistente), 409 (evento no cerrado) y 502 (servicio externo caído).
-
-### Tests for User Story 1
-- [ ] T010 Contract test para endpoint
-- [ ] T011 Integration test con WireMock
-- [x] T012 Unit tests para UseCase
-
-### Implementation for User Story 1
-- [x] T013 [US1] Crear Request/Response en infrastructure/dto/
-- [x] T014 [US1] Implementar EventSnapshotApiClient
-- [x] T015 [US1] Implementar ConsultarResumenVentasUseCase
-- [x] T016 [US1] Implementar ResumenVentasController
-- [x] T017 [US1] Integrar manejo de errores
-- [ ] T018 [US1] Métricas y logs
-
-## Phase 4: Polish & Cross-Cutting Concerns
-**Purpose:** Improvements
-- [ ] T019 Documentación OpenAPI/Swagger
-- [ ] T020 Circuit Breaker (Resilience4j)
-- [ ] T021 Tests de concurrencia
-- [ ] T022 Validaciones más estrictas (@Valid, constraints)
-- [ ] T023 Code cleanup
-
----
-
-## Dependencies & Execution Order
-
-### Phase Dependencies
-- **Setup:** Can start immediately
-- **Foundational:** Blocks all user stories
-- **User Stories:** Depend on Foundational
-- **Polish:** Depends on User Story 1
-
-### Within Each User Story
-1. DTOs & Domain Models before services
-2. Repository Interface before External Client implementation
-3. Core Use Case logic before Controller/Endpoint
-4. Error handling & Logging after core implementation
-5. Tests after implementation
-
----
-
-## Notes
-- `[P]` = Prioridad/Paralelizable, `[US1]` = Trazabilidad a Historia de Usuario 1
-- El resumen se calcula dinámicamente. No se persiste ResumenVentasEvento
-- SC-003 exige bloqueo de液态ación: el UseCase lanza excepciones no recuperables
-- Validar explícitamente estadoEvento == CERRADO
-- Mock disponible en MockEventSnapshotRepository para pruebas sin Módulo 1
-
----
+## Checklist de consistencia
+- [x] Nombres de clases y paquetes alineados al codigo actual
+- [x] Codigos de error alineados: `EVENT_NOT_FOUND`, `EVENT_NOT_CLOSED`
+- [x] Version de Spring Boot alineada: `4.0.5`
+- [x] Endpoint GET alineado con controlador actual
+- [x] Soporte Docker documentado para ejecucion en cualquier PC

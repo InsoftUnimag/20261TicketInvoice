@@ -10,7 +10,6 @@ import com.ticketevents.liquidation.shared.errors.TechnicalException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 
 @Service
@@ -48,7 +47,7 @@ public class ConsultarRecintoUseCase {
         try {
             validarRecinto(recinto);
         } catch (IllegalArgumentException e) {
-            log.error("Validación de recinto fallida: {}", e.getMessage());
+            log.error("Validacion de recinto fallida: {}", e.getMessage());
             throw new TechnicalException(ErrorCode.INVALID_REQUEST, e.getMessage());
         }
 
@@ -61,13 +60,14 @@ public class ConsultarRecintoUseCase {
 
     private void validarRecinto(Recinto recinto) {
         if (recinto.getTasaComision() == null) {
-            throw new IllegalArgumentException("La tasa de comisión es requerida");
+            throw new IllegalArgumentException("La tasa de comision es requerida");
         }
         if (recinto.getTasaComision().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("La tasa de comisión no puede ser negativa");
+            throw new IllegalArgumentException("La tasa de comision no puede ser negativa");
         }
         if (recinto.getTasaComision().compareTo(BigDecimal.ONE) > 0) {
-            throw new IllegalArgumentException("La tasa de comisión no puede ser mayor al 100%");
+            throw new IllegalArgumentException("La tasa de comision no puede ser mayor al 100%");
         }
     }
+
 }
