@@ -5,7 +5,9 @@ public enum ErrorCode {
     EVENT_NOT_CLOSED("EVENT_NOT_CLOSED", "El evento aún no ha sido cerrado"),
     EXTERNAL_SERVICE_UNAVAILABLE("EXTERNAL_SERVICE_UNAVAILABLE", "No fue posible obtener la información de ventas"),
     INVALID_REQUEST("INVALID_REQUEST", "Solicitud inválida"),
-    RECINTO_NOT_FOUND("RECINTO_NOT_FOUND", "El recinto no se encuentra registrado");
+    RECINTO_NOT_FOUND("RECINTO_NOT_FOUND", "El recinto no se encuentra registrado"),
+    DISTRIBUTION_NOT_FOUND("DISTRIBUTION_NOT_FOUND", "No se encontro la distribucion del recaudo para el evento"),
+    DISTRIBUTION_NOT_LIQUIDATED("DISTRIBUTION_NOT_LIQUIDATED", "El evento aun no tiene liquidacion disponible");
 
     private final String code;
     private final String message;
