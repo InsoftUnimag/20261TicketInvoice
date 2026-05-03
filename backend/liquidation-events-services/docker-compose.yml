@@ -10,6 +10,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    volumes:
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
 
   liquidation-events-services:
     build:
@@ -19,7 +21,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: docker-recinto
+      SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/resumen_ventas
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres

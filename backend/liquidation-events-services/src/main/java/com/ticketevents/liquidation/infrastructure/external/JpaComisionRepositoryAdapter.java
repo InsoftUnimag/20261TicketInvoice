@@ -5,11 +5,9 @@ import com.ticketevents.liquidation.domain.repositories.ComisionConsultaReposito
 import com.ticketevents.liquidation.infrastructure.adapter.output.external.dto.ComisionDto;
 import jakarta.persistence.EntityManager;
 import java.util.Optional;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnProperty(name = "app.repository.mock-enabled", havingValue = "false", matchIfMissing = true)
 public class JpaComisionRepositoryAdapter implements ComisionConsultaRepository {
 
     private final EntityManager entityManager;
