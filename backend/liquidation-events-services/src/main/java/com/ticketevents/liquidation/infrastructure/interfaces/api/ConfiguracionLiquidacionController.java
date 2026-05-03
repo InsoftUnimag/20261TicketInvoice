@@ -43,11 +43,33 @@ public class ConfiguracionLiquidacionController {
 
         Optional<ConfiguracionLiquidacion> config = repository.findByEventoId(eventoId);
         if (config.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            DeterminarTipoLiquidacionResponse response = new DeterminarTipoLiquidacionResponse();
+            response.setEventoId(eventoId);
+            response.setMensaje("El evento no tiene configuracion de liquidacion registrada");
+            return ResponseEntity.ok(response);
         }
 
         DeterminarTipoLiquidacionResponse response = mapper.toResponse(mapper.toDto(config.get()));
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/configuracion-liquidacion/configurar")
+    public ResponseEntity<DeterminarTipoLiquidacionResponse> configurarLiquidacionDesdeNavegador(
+            @PathVariable("id") Long eventoId,
+            @RequestParam("tipoLiquidacion") TipoLiquidacion tipoLiquidacion,
+            @RequestParam(value = "valorComision", required = false) BigDecimal valorComision,
+            @RequestParam(value = "porcentaje", required = false) BigDecimal porcentaje) {
+        log.info("Solicitud GET de configuracion de liquidacion para evento: {}", eventoId);
+
+        ConfiguracionLiquidacionDto dto = determinarTipoLiquidacionUseCase.execute(
+                eventoId,
+                tipoLiquidacion,
+                valorComision,
+                porcentaje
+        );
+
+        DeterminarTipoLiquidacionResponse response = mapper.toResponse(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/{id}/configuracion-liquidacion")

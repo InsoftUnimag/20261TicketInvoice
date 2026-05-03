@@ -9,6 +9,8 @@ import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.C
 import com.ticketevents.liquidation.infrastructure.adapter.input.rest.response.RegistrarComisionRecintoResponse;
 import com.ticketevents.liquidation.infrastructure.mappers.ComisionRecintoMapper;
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
+import com.ticketevents.liquidation.domain.entities.TipoComision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -62,6 +64,23 @@ public class ComisionRecintoController {
 
         RegistrarComisionRecintoResponse response = mapper.toResponse(dto);
 
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{id}/comision/configurar")
+    public ResponseEntity<RegistrarComisionRecintoResponse> registrarComisionDesdeNavegador(
+            @PathVariable("id") Long recintoId,
+            @RequestParam("tipoComision") TipoComision tipoComision,
+            @RequestParam("valorComision") BigDecimal valorComision) {
+        log.info("Solicitud GET de registro de comision para recinto: {}", recintoId);
+
+        ComisionRecintoDto dto = registrarComisionRecintoUseCase.execute(
+                recintoId,
+                tipoComision,
+                valorComision
+        );
+
+        RegistrarComisionRecintoResponse response = mapper.toResponse(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

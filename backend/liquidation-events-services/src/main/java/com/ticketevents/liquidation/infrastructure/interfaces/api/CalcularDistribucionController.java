@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +35,16 @@ public class CalcularDistribucionController {
 
         DistribucionRecaudoDto dto = calcularDistribucionUseCase.execute(eventoId);
 
+        CalcularDistribucionResponse response = distribucionMapper.toResponse(dto);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{id}/calcular-distribucion")
+    public ResponseEntity<CalcularDistribucionResponse> calcularDistribucionDesdeNavegador(@PathVariable("id") Long eventoId) {
+        log.info("Solicitud GET de calculo de distribucion del recaudo para evento: {}", eventoId);
+
+        DistribucionRecaudoDto dto = calcularDistribucionUseCase.execute(eventoId);
         CalcularDistribucionResponse response = distribucionMapper.toResponse(dto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
