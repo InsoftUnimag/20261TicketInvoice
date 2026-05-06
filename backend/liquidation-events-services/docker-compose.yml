@@ -12,6 +12,8 @@ services:
       retries: 10
     volumes:
       - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
 
   liquidation-events-services:
     build:
