@@ -2,31 +2,17 @@ import { User } from "lucide-react";
 
 export function AppHeader() {
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-gradient-to-r from-purple-600 to-purple-700 shadow-lg z-50">
-      <div className="h-full px-8 flex items-center justify-between">
-        {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-purple-200 rounded" />
-          <span className="text-white font-semibold text-lg tracking-wide">Ticket Seller</span>
+    <header className="fixed top-0 left-0 right-0 h-28 bg-[#241c47] z-50">
+      <div className="h-full px-8 md:px-12 flex items-center justify-between">
+        <div className="flex items-center gap-5">
+          <div className="w-20 h-20 bg-[#9c98aa]" />
+          <span className="text-[#d8d4e6] font-semibold text-5xl leading-none">Ticket Seller</span>
         </div>
 
-        {/* Búsqueda */}
-        <div className="flex-1 max-w-md mx-8">
-          <input
-            type="text"
-            placeholder="Buscar evento por ID o nombre..."
-            className="w-full px-4 py-2 rounded-lg bg-purple-500/20 text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-300"
-          />
-        </div>
-
-        {/* Usuario */}
-        <div className="flex items-center gap-3">
-          <div className="text-right text-sm">
-            <p className="text-purple-100 text-xs">Administrador</p>
-            <p className="text-white font-medium">Financiero</p>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-purple-200 flex items-center justify-center">
-            <User className="w-6 h-6 text-purple-700" />
+        <div className="flex items-center gap-4">
+          <p className="text-[#d8d4e6] text-2xl font-medium">Administrador Financiero</p>
+          <div className="w-16 h-16 rounded-full bg-[#d8d4e6] flex items-center justify-center">
+            <User className="w-8 h-8 text-[#241c47]" />
           </div>
         </div>
       </div>
