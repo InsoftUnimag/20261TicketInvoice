@@ -1,14 +1,27 @@
 package com.ticketevents.liquidation.infrastructure.adapter.input.rest.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
-import java.util.Map;
 
+@Schema(description = "Estado de ingreso de tickets de un evento")
 public class ConsultarEstadoIngresoResponse {
+
+    @Schema(description = "ID del evento", example = "1")
     private Long eventoId;
+
+    @Schema(description = "Nombre del evento", example = "Concierto Rock 2026")
     private String nombreEvento;
+
+    @Schema(description = "Lista de tickets con su estado de ingreso")
     private List<TicketEstadoIngreso> tickets;
+
+    @Schema(description = "Total de tickets", example = "130")
     private int totalTickets;
+
+    @Schema(description = "Total de tickets con check-in realizado", example = "100")
     private int totalCheckeados;
+
+    @Schema(description = "Total de tickets sin check-in", example = "30")
     private int totalNoAsistieron;
 
     public ConsultarEstadoIngresoResponse() {}
@@ -26,10 +39,18 @@ public class ConsultarEstadoIngresoResponse {
     public int getTotalNoAsistieron() { return totalNoAsistieron; }
     public void setTotalNoAsistieron(int totalNoAsistieron) { this.totalNoAsistieron = totalNoAsistieron; }
 
+    @Schema(description = "Estado de ingreso de un ticket individual")
     public static class TicketEstadoIngreso {
+        @Schema(description = "ID del ticket", example = "1")
         private Long idTicket;
+
+        @Schema(description = "Código del ticket", example = "TKT-1")
         private String codigoTicket;
+
+        @Schema(description = "Estado de ingreso", example = "CHECKED_IN", allowableValues = {"CHECKED_IN", "NOT_ATTENDED"})
         private String estadoIngreso;
+
+        @Schema(description = "Tipo de acceso", example = "INGRESO", allowableValues = {"INGRESO", "REINGRESO"})
         private String tipoAcceso;
 
         public TicketEstadoIngreso() {}

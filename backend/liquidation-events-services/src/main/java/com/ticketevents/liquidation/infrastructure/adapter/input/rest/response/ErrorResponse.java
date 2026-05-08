@@ -1,13 +1,22 @@
 package com.ticketevents.liquidation.infrastructure.adapter.input.rest.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Schema(description = "Respuesta de error estándar")
 public class ErrorResponse {
 
+    @Schema(description = "Código de error", example = "EVENT_NOT_FOUND")
     private String code;
+
+    @Schema(description = "Mensaje descriptivo del error", example = "El evento no se encuentra registrado")
     private String message;
+
+    @Schema(description = "Marca de tiempo del error", example = "2026-05-07T10:00:00")
     private LocalDateTime timestamp;
+
+    @Schema(description = "Errores de validación de campos")
     private List<FieldError> errors;
 
     public ErrorResponse() {}

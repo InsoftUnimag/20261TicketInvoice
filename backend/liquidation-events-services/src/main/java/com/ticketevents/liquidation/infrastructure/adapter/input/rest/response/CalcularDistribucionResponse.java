@@ -1,20 +1,43 @@
 package com.ticketevents.liquidation.infrastructure.adapter.input.rest.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Schema(description = "Resultado del cálculo de distribución del recaudo de un evento")
 public class CalcularDistribucionResponse {
 
+    @Schema(description = "ID del evento", example = "1")
     private Long eventoId;
+
+    @Schema(description = "Nombre del evento", example = "Concierto Rock 2026")
     private String nombreEvento;
+
+    @Schema(description = "Total bruto recaudado", example = "62500.00")
     private BigDecimal totalBruto;
+
+    @Schema(description = "Valor neto preliminar (bruto - cancelados)", example = "56000.00")
     private BigDecimal totalNetoPreliminar;
+
+    @Schema(description = "Total distribuible después de comisiones", example = "48200.00")
     private BigDecimal totalDistribuible;
+
+    @Schema(description = "Comisión de la plataforma", example = "6500.00")
     private BigDecimal comisionPlataforma;
+
+    @Schema(description = "Descuento por tickets cancelados", example = "2500.00")
     private BigDecimal descuentoCancelados;
+
+    @Schema(description = "Descuento por cortesías", example = "0.00")
     private BigDecimal descuentoCortesia;
+
+    @Schema(description = "Estado de la liquidación", example = "PRELIMINAR", allowableValues = {"PRELIMINAR", "SIN_RECAUDO"})
     private String estado;
+
+    @Schema(description = "Fecha del cálculo", example = "2026-05-07T10:00:00")
     private LocalDateTime fechaCalculo;
+
+    @Schema(description = "Mensaje informativo", example = "Distribucion del recaudo calculada exitosamente")
     private String mensaje;
 
     public Long getEventoId() { return eventoId; }

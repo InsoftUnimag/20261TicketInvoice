@@ -1,18 +1,38 @@
 package com.ticketevents.liquidation.infrastructure.adapter.input.rest.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.util.Map;
 
+@Schema(description = "Ingresos generados por la venta de tickets de un evento")
 public class ConsultarIngresosResponse {
 
+    @Schema(description = "ID del evento", example = "1")
     private Long eventoId;
+
+    @Schema(description = "Total de tickets vendidos", example = "145")
     private int totalTicketsVendidos;
+
+    @Schema(description = "Total de tickets validados (check-in)", example = "100")
     private int totalTicketsValidados;
+
+    @Schema(description = "Total de tickets cancelados", example = "5")
     private int totalTicketsCancelados;
+
+    @Schema(description = "Total de cortesías", example = "10")
     private int totalCortesias;
+
+    @Schema(description = "Total de tickets no asistieron", example = "30")
     private int totalNoAsistieron;
+
+    @Schema(description = "Total recaudo bruto", example = "62500.00")
     private BigDecimal totalRecaudoBruto;
+
+    @Schema(description = "Tickets agrupados por estado financiero",
+        example = "{\"VALIDADO\": 100, \"VENDIDO\": 30, \"CANCELADO\": 5, \"CORTESIA\": 10}")
     private Map<String, Integer> ticketsPorEstado;
+
+    @Schema(description = "Indica si hay tickets sin estado definido", example = "false")
     private boolean hasInconsistencies;
 
     public ConsultarIngresosResponse() {}
